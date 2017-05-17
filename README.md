@@ -11,4 +11,4 @@ While predicting a rating is nice, the ultimate goal of this project was to iden
 
 Analysis was primarily done in using Python and some Natural Langauge Processing (done in [SpaCY](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=2&cad=rja&uact=8&ved=0ahUKEwihiYSd9_XTAhUW4WMKHezGCMIQFgg2MAE&url=https%3A%2F%2Fspacy.io%2F&usg=AFQjCNEGeNVbZtCmDfWQFUB4VPzRiaFspA&sig2=ox_-0rPFIFi1gJH0crccrA)) on the corpus. Data is present from December of 1989 October of 2016 with 600 episodes in total. 
 
-Future steps could include performing a similar analysis on several other seasons of comedic animated series' such as Family Guy or Futurama with comparisons, or using a comedic movie script to get to a Rotton Tomatoes score.
+Future steps could include performing a similar analysis on several other seasons of comedic animated series' such as Family Guy or Futurama for comparison, or using a comedic movie script to get to a Rotton Tomatoes score. Alternatively, this analysis only used the spoken lines from the show; it would be interesting to bring in unspoken directors notes for scene animations or _how_ a line would be spoken. 

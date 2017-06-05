@@ -8,6 +8,7 @@ from sklearn.model_selection import train_test_split as tts
 from sklearn.metrics import mean_squared_error as mse
 from sklearn.preprocessing import Imputer
 from math import sqrt
+import matplotlib.pyplot as plt
 
 def impute_with_knn(df):
     impute_subset = test_scores.drop(labels=['family_inv','prev_disab','score'], axis=1)
@@ -49,8 +50,10 @@ def clean_episode_data(filename):
     df['original_air_date'] = pd.to_datetime(df['original_air_date'])
     # Election cycle years are all divisible by four, (e.g. 2016) so I'm adding this info to see if it gives any insight to IMDB ratings
     df['election_year'] = df['original_air_date'].apply(lambda x: 1 if x.year % 4 == 0 else 0)
-    # fill with backfill, since episodes are sequential, resets any missing values to be the same as the prior episode
-    df.fillna(method = 'bfill', inplace=True)
+    # fill Nans from rating and views with the mean
+    df.views.fillna(df.views.mean(), inplace=True)
+    df.imdb_rating.fillna(df.imdb_rating.mean(), inplace=True)
+    df.election_year = df.election_year.astype(bool)
     # drop any unnecesary columns
     df.drop(labels=['title', 'image_url','video_url','imdb_votes', 'production_code'], axis=1, inplace = True)
     return df
@@ -69,8 +72,9 @@ def return_clean_script_df(fname, df):
     '''
     # import errors for inconsistent use of quotations removed by `error_bad_lines` call, need to have some help with this
     script_df = pd.read_csv(fname, error_bad_lines = False)
+    script_df = script_df[['episode_id', "speaking_line", "spoken_words", "normalized_text", "word_count", 'raw_character_text', "location_id"]]
     # keep only the normalized lines so capitalization isn't a problem
-    script_df.drop(labels = ['spoken_words', 'raw_text'], axis=1, inplace=True)
+    # script_df.drop(labels = ['spoken_words', 'raw_text'], axis=1, inplace=True)
     # get totals for the number of episodes of lines in each episode
     line_series = script_df.groupby('episode_id')['speaking_line'].count()
     # merge into episode df
@@ -92,27 +96,24 @@ def return_clean_script_df(fname, df):
     df.columns = ['id','original_air_date',  'season', 'number_in_season', 'number_in_series', 'views', 'imdb_rating', 'title_len', 'election_year', 'word_count', 'major_char_lines', 'locations_in_ep']
     return df
 
-def try_stacking_models(df, kwarg = 'rmse'):
+def try_stacking_models(df, kwarg = 'rmse', trees = 6000):
     '''
     INPUT: clean Pandas Dataframe with script and episode information, kwarg for if we are printing RMSE or returning the dataframe itself (for PyMC3 usage)
     OUTPUT: Either the RMSE for the stacked model or a Dataframe with three new columns (scores from each of the three models)
     '''
     # train test split model testing model stacking (adding result of one or more models as a datapoint for the next model)
     # fill all NaNs with column-wise mean
-    df.views.fillna(df.views.mean(), inplace=True)
-    df.imdb_rating.fillna(df.imdb_rating.mean(), inplace=True)
+    start_df = df
     df.major_char_lines.fillna(df.major_char_lines.mean(),inplace=True)
-    # df.homer_lines.fillna(df.homer_lines.mean(),inplace=True)
     df.word_count.fillna(df.word_count.mean(),inplace=True)
     df.locations_in_ep.fillna(df.locations_in_ep.mean(), inplace=True)
-    print(df.info())
     # get X and y
     y = df['imdb_rating']
     # X = df[['id', 'season', 'number_in_season', 'number_in_series', 'views', 'title_len', 'election_year', 'word_count', 'homer_and_bart']]
     X = df[['id', 'number_in_season', 'views', 'title_len', 'word_count', 'major_char_lines']]
     # build stacked model using Gradient Boost, AdaBoost, and Random Forest
     # define model parameters
-    gbr, rfr, abr = g_br(loss = 'lad', learning_rate = .1, n_estimators=5000, subsample = .85, warm_start=False, verbose=True), r_fr(n_estimators=400, n_jobs=-1, verbose=True, min_impurity_split=1e-6), a_br(n_estimators=5000, learning_rate=.4, loss = 'exponential')
+    gbr, rfr, abr = g_br(loss = 'lad', learning_rate = .19, n_estimators=6000, subsample = .85, warm_start=True, verbose=True), r_fr(n_estimators=(trees*.05), n_jobs=-1, verbose=True, min_impurity_split=1e-6), a_br(n_estimators=6000, learning_rate=.4, loss = 'exponential')
     # go through and build model for each, then add column to dataframe with predicted. Make sure to train_test_split
     # Random Forest Regressor
     X_tr, X_te, y_tr, y_te = tts(X, y)
@@ -138,8 +139,41 @@ def try_stacking_models(df, kwarg = 'rmse'):
         #recombine X and Y then return df with new column for each model
         X['rating'] = y
         df = X
-        print(X.head(2))
-        return X
+        #
+        #
+        #
+        pred = gbr.predict(X_te)
+        #get feature importances, then score model using predicted values from GradientBoostingRegressor
+        print(sorted(list(zip(gbr.feature_importances_, ['id', 'number_in_season', 'views', 'title_len', 'word_count', 'major_char_lines', 'rfr_score', 'abr_score'])), reverse=True))
+        # return test vals
+        print(str('final score (rmse) = {0}'.format(sqrt(mse(y_te, pred)))))
+        rmse = sqrt(mse(y_te, pred))
+        plot_scores(df, rmse)
+        if rmse > .21:
+            print('\n')
+            print('\n')
+            print('score too low, starting over')
+            print('\n')
+            trees = trees + 150
+            try_stacking_models(start_df, kwarg='plot', trees = trees)
+        else:
+            return X
+
+def plot_scores(df, rmse):
+    plt.style.use('ggplot')
+    fig = plt.figure(figsize=(35,15))
+    ax = fig.add_subplot(111)
+    ax.plot(df['id'][::2], df['rating'][::2], label='True Rating', color='r', lw=5, alpha=.4)
+    ax.plot(df['id'][::2], df['gbr'][::2], label = 'Predicted Rating', color = 'b', lw =5, alpha = .4)
+    ax.set_xlim((0,600))
+    ax.tick_params(labelsize=20)
+    ax.set_title('Predicted Ratings to Actual Ratings, RMSE = {0}'.format(round(rmse, 3)), size=40)
+    ax.set_xlabel('Episode Number', size=35)
+    ax.set_ylabel('Rating on 10 point scale', size = 35)
+    plt.legend(prop={'size':35})
+    plt.tight_layout()
+    plt.savefig('score.png', dpi=100)
+    plt.close('all')
 
 if __name__ == '__main__':
     # read in episode data to Pandas DataFrame
@@ -147,11 +181,9 @@ if __name__ == '__main__':
     # read in raw episode data, return clean episode pandas dataframe
     # loc_filename = 'simpsons_locations.csv'
     episode_df = return_clean_script_df("data/simpsons_script_lines.csv", clean_episode_data(e_filename))
-    # get rmse for stacked model
-    print(try_stacking_models(episode_df))
+    # get rmse for stacked model with kwarf 'rmse'
+    df = try_stacking_models(episode_df, kwarg = 'gbr')
 
 # side note - I want to add in these details from scripts:
 # song (bool)
 # monologue (line len > 90 words)
-#
-# also want to add num locations to mix, and ideally a bart to other ratio - for lines in an episode by bart and lines in an episode by other characters, since bart occurs most frequently

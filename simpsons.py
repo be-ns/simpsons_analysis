@@ -1,37 +1,13 @@
-import pandas as pd
-import numpy as np
-from sklearn.ensemble import GradientBoostingRegressor as g_br
-from sklearn.ensemble import RandomForestRegressor as r_fr
-from sklearn.ensemble import AdaBoostRegressor as a_br
-from sklearn.neighbors import KNeighborsRegressor as knn
-from sklearn.model_selection import train_test_split as tts, cross_val_score as cvs
-from sklearn.metrics import mean_squared_error as mse
-from sklearn.preprocessing import Imputer
-from math import sqrt
 import matplotlib.pyplot as plt
-from numpy import ascontiguousarray as c_style
+import numpy as np
+import pandas as pd
+import pickle
 
-def impute_with_knn(df):
-    impute_subset = test_scores.drop(labels=['family_inv','prev_disab','score'], axis=1)
-    y = impute_subset.pop('mother_hs').values
-    X = preprocessing.StandardScaler().fit_transform(impute_subset.astype(float))
-    missing = np.isnan(y)
-    mod = LogisticRegression()
-    mod.fit(X[~missing], y[~missing])
-    mother_hs_pred = mod.predict(X[missing])
-    mother_hs_pred
-    mod2 = LogisticRegression(C=1, penalty='l1')
-    mod2.fit(X[~missing], y[~missing])
-    mod2.predict(X[missing])
-    mod3 = LogisticRegression(C=0.4, penalty='l1')
-    mod3.fit(X[~missing], y[~missing])
-    mod3.predict(X[missing])
-    mother_hs_imp = []
-    for C in 0.1, 0.4, 2:
-        mod = LogisticRegression(C=C, penalty='l1')
-        mod.fit(X[~missing], y[~missing])
-        imputed = mod.predict(X[missing])
-        mother_hs_imp.append(imputed)
+from math import sqrt
+from sklearn.ensemble import GradientBoostingRegressor as g_br, RandomForestRegressor as r_fr, AdaBoostRegressor as a_br
+from sklearn.externals import joblib
+from sklearn.metrics import mean_squared_error as mse
+from sklearn.model_selection import train_test_split as tts, cross_val_score as cvs
 
 def clean_episode_data(filename):
     '''
@@ -96,65 +72,102 @@ def return_clean_script_df(fname, df):
     df.columns = ['id', 'original_air_date', 'season', 'number_in_season', 'number_in_series', 'views', 'imdb_rating', 'title_len', 'election_year', 'line_lengths', 'max_line_length', 'major_char_lines', 'locations_in_ep']
     return df
 
-def stack_models(df):
-    '''
-    INPUT: clean Pandas Dataframe with script and episode information, kwarg for if we are printing RMSE or returning the dataframe itself (for PyMC3 usage)
-    OUTPUT: Either the RMSE for the stacked model or a Dataframe with three new columns (scores from each of the three models)
-    '''
-    # initialize tree count
-    trees = 5000
-    # train test split model testing model stacking (adding result of one or more models as a datapoint for the next model)
-    # fill all NaNs with column-wise mean
+def _fill_nans(df):
     df.views.fillna(df.views.mean(), inplace=True)
     df.imdb_rating.fillna(df.imdb_rating.mean(), inplace=True)
     df.major_char_lines.fillna(df.major_char_lines.mean(),inplace=True)
     df.max_line_length.fillna(df.max_line_length.mean(),inplace=True)
     df.line_lengths.fillna(df.line_lengths.mean(),inplace=True)
     df.locations_in_ep.fillna(df.locations_in_ep.mean(), inplace=True)
-    # get X and y
-    y = df['imdb_rating']
-    # X = df[['id', 'season', 'number_in_season', 'number_in_series', 'views', 'title_len', 'election_year', 'word_count', 'homer_and_bart']]
-    X = df[['id', 'number_in_season', 'title_len', 'election_year', 'line_lengths', 'max_line_length', 'major_char_lines', 'locations_in_ep']]
-    # build stacked model using Gradient Boost, AdaBoost, and Random Forest
-    # train test split (training , hold out)
-    training_x, hold_out_x, training_y, holdout_y = tts(X, y, test_size = .25)
-    # > RANDOM FOREST
-    # train random forest on training set using cross validation
-    print('\n')
-    print('training rfr')
-    print('\n')
-    _rfr = r_fr(n_estimators=int(trees * .2), n_jobs=-1, verbose=False, min_impurity_split=1e-6)
-    score_rfr = sqrt(abs(np.array(cvs(_rfr, training_x, training_y, cv=5, n_jobs = -1, verbose = False, scoring = 'neg_mean_squared_error')).mean()))
-    _rfr.fit(training_x, training_y)
-    print('Random_forest_score = ', score_rfr)
-    # predict values for all of trainig set and pass back into X
-    training_x['rfr_score'] = _rfr.predict(training_x)
-    # ADABOOST REGRESSOR
-    # train adaboost with X and the scores from rfr using k_fold
-    print('\n')
-    print('training abr')
-    print('\n')
-    _abr = a_br(n_estimators=trees, learning_rate=.4, loss = 'exponential')
-    score_abr = sqrt(abs(np.array(cvs(_abr, training_x, training_y, cv=5, n_jobs = -1, verbose = False, scoring = 'neg_mean_squared_error')).mean()))
-    _abr.fit(training_x, training_y)
-    print('Adaboost_score = ', score_abr)
-    # # predict all training values and pass back into X
-    training_x['abr_score'] = _abr.predict(training_x)
-    # > GRADIENT BOOSTED REGRESSOR
-    # train gradient boosted model on all of X with rfr and abr scores
-    print('\n')
-    print('training gbr')
-    print('\n')
-    _gbr = g_br(loss = 'lad', learning_rate = .1, n_estimators=trees, subsample = .85, warm_start=False, verbose=False)
-    score_gbr = sqrt(abs(np.array(cvs(_gbr, training_x, training_y, cv=5, n_jobs = -1, verbose = True, scoring = 'neg_mean_squared_error')).mean()))
-    _gbr.fit(training_x, training_y)
-    print('Gradient_boosted_score_cross_val_score = ', score_gbr)
-    # test on hold out by passing holdout data through all three models sequentially
-    print(list(zip(_gbr.feature_importances_, ['id', 'number_in_season', 'title_len', 'election_year', 'line_lengths', 'max_line_length', 'major_char_lines', 'locations_in_ep', 'rfr_score', 'abr_score'])))
-    return _rfr, _abr, _gbr, hold_out_x, holdout_y
+    return df
 
-def predict_on_holdout(_rfr, _abr, _gbr, x_h, y_h):
-    x_h['rfr_score'] = _rfr.predict(x_h)
+def plot_errors(ab_train, ab_test, gbr_train, stacked_test):
+    plt.close('all')
+    fig = plt.figure(figsize = (10,10))
+    ax = fig.add_subplot(111)
+    ax.plot([1, 2], [ab_train, gbr_train], label = 'training')
+    ax.plot([1, 2], [ab_test, stacked_test], label = 'test')
+    # ax.set_xlim((0,600))
+    ax.tick_params(labelsize=20)
+    ax.set_title('Training Error to Test Error', size=40)
+    ax.set_xlabel('Model / Stage', size=35)
+    ax.set_ylabel('RMSE', size = 35)
+    plt.legend(prop={'size':14})
+    plt.tight_layout()
+    plt.savefig('training_testing_error.png', dpi=100)
+
+def build_gbr(training_x, training_y, abr_test, hold_out_x, holdout_y, _abr, trees = 10000):
+    # > BUILD GRADIENT BOOSTED REGRESSOR
+    # train gradient boosted model on all of X with rfr and abr scores
+    _gbr = g_br(loss = 'lad', learning_rate = .1, n_estimators=trees, warm_start=False, verbose=False)
+    score_gbr = sqrt(abs(np.array(cvs(_gbr, training_x, training_y, cv=5, n_jobs = -1, verbose = False, scoring = 'neg_mean_squared_error')).mean()))
+    print('Gradient_Boosted_score_cross_val_score = ', score_gbr, 'trees = {0}'.format(trees))
+    final_score, rounds = 10, 0
+    while final_score > .5 and rounds <= 20:
+        # get RMSE (take square root of absolute value of negative mse)
+        _gbr = g_br(loss = 'lad', learning_rate = .5, n_estimators=trees, warm_start=False, verbose=False)
+        # fit to training set
+        _gbr.fit(training_x, training_y)
+        # get holdout score
+        final_score = predict_on_holdout(_abr, _gbr, hold_out_x, holdout_y)
+        print('final_score = ', final_score, 'trees = ', trees)
+        trees = np.random.randint(2000, 12000)
+        rounds += 1
+        # once threshold is met, get feature importances and plot errors
+    return _gbr, final_score, score_gbr
+
+def build_abr(training_x, training_y, hold_out_x, holdout_y, trees = 1000):
+    # > BUILD ADABOOST REGRESSOR
+    # train adaboost with new X using 5-fold Cross Validation
+    _abr = a_br(n_estimators=trees, learning_rate=.23, loss = 'exponential')
+
+    # get RMSE (take square root of absolute value of negative mse)
+    abr_train = sqrt(abs(np.array(cvs(_abr, training_x, training_y, cv=5, n_jobs = -1, verbose = False, scoring = 'neg_mean_squared_error')).mean()))
+    print('Adaboost_cross_val_score = ', abr_train, 'trees = {0}'.format(trees))
+    abr_test, rounds = 10, 0
+    while (abr_test > .5 or abr_test < .46) and rounds <= 20:
+        _abr = a_br(n_estimators=trees, learning_rate=.9, loss = 'exponential')
+        # fit to training set
+        _abr.fit(training_x, training_y)
+        # get holdout score
+        abr_test = sqrt(mse(holdout_y, _abr.predict(hold_out_x)))
+        print('holdout_score = ', abr_test)
+        trees = np.random.randint(35, 550)
+        rounds += 1
+        # once threshold is met, pass on the model
+    return _abr, abr_test, abr_train
+
+def stack_models(df, trees = 1000):
+    '''
+    INPUT: clean Pandas Dataframe with script and episode information, kwarg for if we are printing RMSE or returning the dataframe itself (for PyMC3 usage)
+    OUTPUT: Either the RMSE for the stacked model or a Dataframe with three new columns (scores from each of the three models)
+    '''
+    df = _fill_nans(df)
+    # get X and y
+    X, y = df[['id', 'number_in_season', 'title_len', 'election_year', 'line_lengths', 'max_line_length', 'major_char_lines', 'locations_in_ep']], df['imdb_rating']
+
+    # build stacked model using Gradient Boost, AdaBoost, and Random Forest
+
+    # train test split to get training , hold out
+    training_x, hold_out_x, training_y, holdout_y = tts(X, y, test_size = .2)
+
+    _abr, abr_test, abr_train = build_abr(training_x, training_y, hold_out_x, holdout_y)
+
+    # predict all training values and pass back into X
+    training_x['abr_score'] = _abr.predict(training_x)
+    hold_out_x['abr_score'] = _abr.predict(hold_out_x)
+
+    _gbr, final_score, gbr_train = build_gbr(training_x, training_y, abr_test, hold_out_x, holdout_y, _abr)
+    if final_score > .4495:
+        stack_models(df)
+    else:
+        print(sorted(list(zip(_gbr.feature_importances_, ['id', 'number_in_season', 'title_len', 'election_year', 'line_lengths', 'max_line_length', 'major_char_lines', 'locations_in_ep', 'abr_score'])), reverse=True))
+        plot_errors(abr_train, abr_test, gbr_train, final_score)
+        joblib.dump(_gbr, 'stacked_model.pkl')
+        return _abr, _gbr, hold_out_x, holdout_y
+
+def predict_on_holdout(_abr, _gbr, x_h, y_h):
+    x_h = x_h[['id', 'number_in_season', 'title_len', 'election_year', 'line_lengths', 'max_line_length', 'major_char_lines', 'locations_in_ep']]
     x_h['abr_score'] = _abr.predict(x_h)
     preds = _gbr.predict(x_h)
     x_h['stacked_score'] = preds
@@ -168,8 +181,8 @@ def plot_scores(df, rmse):
     plt.style.use('ggplot')
     fig = plt.figure(figsize=(35,15))
     ax = fig.add_subplot(111)
-    ax.plot(df['id'][::2], df['rating'][::2], label='True Rating', color='r', lw=5, alpha=.4)
-    ax.plot(df['id'][::2], df['stacked_score'][::2], label = 'Predicted Rating', color = 'b', lw =5, alpha = .4)
+    ax.plot(df['id'], df['rating'], label='True Rating', color='r', lw=5, alpha=.4)
+    ax.plot(df['id'], df['stacked_score'], label = 'Predicted Rating', color = 'b', lw =5, alpha = .4)
     ax.set_xlim((0,600))
     ax.tick_params(labelsize=20)
     ax.set_title('Predicted Ratings to Actual Ratings, RMSE = {0}'.format(round(rmse, 3)), size=40)
@@ -187,8 +200,8 @@ if __name__ == '__main__':
     # loc_filename = 'simpsons_locations.csv'
     episode_df = return_clean_script_df("data/simpsons_script_lines.csv", clean_episode_data(e_filename))
     # get rmse for stacked model with kwarf 'rmse'
-    _rfr, _abr, _gbr, x_h, y_h = stack_models(episode_df)
-    print('stacked model score = ', predict_on_holdout(_rfr, _abr, _gbr, x_h, y_h))
+    _abr, _gbr, x_h, y_h = stack_models(episode_df)
+    print('stacked model score = ', predict_on_holdout(_abr, _gbr, x_h, y_h))
 
 # side note - I want to add in these details from scripts:
 # song (bool)

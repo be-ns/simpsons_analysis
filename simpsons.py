@@ -6,8 +6,10 @@ import pickle
 from math import sqrt
 from sklearn.ensemble import GradientBoostingRegressor as g_br, RandomForestRegressor as r_fr, AdaBoostRegressor as a_br
 from sklearn.externals import joblib
+from sklearn.neighbors import KNeighborsRegressor as k_nn
 from sklearn.metrics import mean_squared_error as mse
-from sklearn.model_selection import train_test_split as tts, cross_val_score as cvs
+from sklearn.model_selection import train_test_split as tts, cross_val_score as cvs, RandomizedSearchCV as r_search
+from scipy.stats import randint as sp_randint
 
 def clean_episode_data(filename):
     '''
@@ -72,6 +74,14 @@ def return_clean_script_df(fname, df):
     df.columns = ['id', 'original_air_date', 'season', 'number_in_season', 'number_in_series', 'views', 'imdb_rating', 'title_len', 'election_year', 'line_lengths', 'max_line_length', 'major_char_lines', 'locations_in_ep']
     return df
 
+def knn_imputer(column, df):
+    knn = k_nn(n_neighbors = 3)
+    _df = df.dropna()
+    x, y = df[[x for x in _df.columns.tolist() if x != column]], _df[column]
+    knn.fit(x, y)
+    knn.predict
+
+
 def _fill_nans(df):
     df.views.fillna(df.views.mean(), inplace=True)
     df.imdb_rating.fillna(df.imdb_rating.mean(), inplace=True)
@@ -91,45 +101,60 @@ def plot_errors(ab_train, ab_test, gbr_train, stacked_test):
     ax.tick_params(labelsize=20)
     ax.set_title('Training Error to Test Error', size=40)
     ax.set_xlabel('Model / Stage', size=35)
+    ax.set_xticks([1, 2], set('AdaBoost', 'Gradient Boost'), rotation=45))
     ax.set_ylabel('RMSE', size = 35)
     plt.legend(prop={'size':14})
     plt.tight_layout()
-    plt.savefig('training_testing_error.png', dpi=100)
+    plt.savefig('error_2.png', dpi=100)
 
 def build_gbr(training_x, training_y, abr_test, holdout_x, holdout_y, _abr, trees = 5000):
     # > BUILD GRADIENT BOOSTED REGRESSOR
     # train gradient boosted model on all of X with rfr and abr scores
-    _gbr = g_br(loss = 'lad', learning_rate = .1, n_estimators=trees, warm_start=False, verbose=False)
+    _gbr = g_br(loss = 'lad', learning_rate = .1, n_estimators=200, warm_start=False, verbose=False)
     gbr_train = sqrt(abs(np.array(cvs(_gbr, training_x, training_y, cv=5, n_jobs = -1, verbose = False, scoring = 'neg_mean_squared_error')).mean()))
     print('Gradient_Boosted_score_cross_val_score = ', gbr_train, 'trees = {0}'.format(trees))
-    final_score, rounds = 10, 20
+    final_score = 100
     while final_score > abr_test:
         # get RMSE (take square root of absolute value of negative mse)
-        _gbr = g_br(loss = 'lad', learning_rate = .5, n_estimators=trees, warm_start=False, verbose=False)
+        _gbr = g_br(loss = 'lad', verbose = True)
+        param_distribution = {
+            "max_depth": [3, 4, 5],
+            "learning_rate": [.2, .3, .4],
+            "n_estimators": sp_randint(500, 3000)
+            }
+        n_iter_search = 30
+        random_search = r_search(_gbr, param_distributions=param_distribution,
+                                   n_iter=n_iter_search, n_jobs = -1, cv = 4, verbose = 1)
         # fit to training set
-        _gbr.fit(training_x, training_y)
+        random_search.fit(training_x, training_y)
+
         # get holdout score
-        final_score = predict_on_holdout(_abr, _gbr, holdout_x, holdout_y)
-        print('final_score = ', final_score, 'trees = ', trees)
-        trees = np.random.randint(2000, 10000)
+        final_score = predict_on_holdout(_abr, random_search, holdout_x, holdout_y)
+        print('final_score = ', final_score)
+
         # once threshold is met, get feature importances and plot errors
-    return _gbr, final_score, gbr_train
+    return random_search, final_score, gbr_train
 
 def build_abr(training_x, training_y, holdout_x, holdout_y, trees = 1000):
     # > BUILD ADABOOST REGRESSOR
     # train adaboost with new X using 5-fold Cross Validation
-    _abr = a_br(n_estimators=trees, learning_rate=.23, loss = 'exponential')
-
+    _abr = a_br()
     # get RMSE (take square root of absolute value of negative mse)
-    abr_train = sqrt(abs(np.array(cvs(_abr, training_x, training_y, cv=5, n_jobs = -1, verbose = False, scoring = 'neg_mean_squared_error')).mean()))
-    print('Adaboost_cross_val_score = ', abr_train, 'trees = {0}'.format(trees))
-    _abr = a_br(n_estimators=trees, learning_rate=.9, loss = 'exponential')
-    # fit to training set
-    _abr.fit(training_x, training_y)
+    abr_train = sqrt(abs(np.array(cvs(_abr, training_x, training_y, cv=4, n_jobs = -1, verbose = False, scoring = 'neg_mean_squared_error')).mean()))
+    print('Adaboost_cross_val_score = ', abr_train)
+    param_distribution = {
+                "loss": ['linear', "square", "exponential"],
+                "learning_rate": [.15, .25, .29, .33, .5, .6, .9],
+                "n_estimators": sp_randint(250, 1500)
+                }
+    n_iter_search = 30
+    random_search = r_search(_abr, param_distributions=param_distribution, n_iter=n_iter_search, n_jobs = -1, cv = 4, verbose = 1)
+            # fit to training set
+    random_search.fit(training_x, training_y)
     # get holdout score
-    abr_test = sqrt(mse(holdout_y, _abr.predict(holdout_x)))
+    abr_test = sqrt(mse(holdout_y, random_search.predict(holdout_x)))
     print('holdout_score = ', abr_test)
-    return _abr, abr_test, abr_train
+    return random_search, abr_test, abr_train
 
 def stack_models(df, trees = 1000):
     '''
@@ -150,19 +175,19 @@ def stack_models(df, trees = 1000):
     # predict all training values and pass back into X
     training_x['abr_score'] = _abr.predict(training_x)
     holdout_x['abr_score'] = _abr.predict(holdout_x)
-    _gbr, final_score, gbr_train = build_gbr(training_x, training_y, abr_test, holdout_x, holdout_y, _abr)
-    if final_score > .4495:
-        stack_models(df, trees = 1000)
-    print(sorted(list(zip(_gbr.feature_importances_, ['id', 'number_in_season', 'title_len', 'election_year', 'line_lengths', 'max_line_length', 'major_char_lines', 'locations_in_ep', 'abr_score'])), reverse=True))
+    random_search, final_score, gbr_train = build_gbr(training_x, training_y, abr_test, holdout_x, holdout_y, _abr)
+    if final_score > .430 or final_score > abr_test:
+        stack_models(df)
+    # print(sorted(list(zip(random_search.feature_importances_, ['id', 'number_in_season', 'title_len', 'election_year', 'line_lengths', 'max_line_length', 'major_char_lines', 'locations_in_ep', 'abr_score'])), reverse=True))
     plot_errors(abr_train, abr_test, gbr_train, final_score)
-    joblib.dump(_gbr, 'stacked_model.pkl')
-    joblib.dump(_abr, 'adaboost_model.pkl')
-    return _abr, _gbr, holdout_x, holdout_y, final_score
+    joblib.dump(random_search, 'stacked_model_2.pkl')
+    joblib.dump(_abr, 'adaboost_model_2.pkl')
+    return _abr, random_search, holdout_x, holdout_y, final_score
 
-def predict_on_holdout(_abr, _gbr, x_h, y_h):
+def predict_on_holdout(_abr, random, x_h, y_h):
     x_h = x_h[['id', 'number_in_season', 'title_len', 'election_year', 'line_lengths', 'max_line_length', 'major_char_lines', 'locations_in_ep']]
     x_h['abr_score'] = _abr.predict(x_h)
-    preds = _gbr.predict(x_h)
+    preds = random.predict(x_h)
     x_h['stacked_score'] = preds
     rmse = sqrt(mse(y_h, preds))
     x_h['rating'] = y_h
@@ -183,7 +208,7 @@ def plot_scores(df, rmse):
     ax.set_ylabel('Rating on 10 point scale', size = 35)
     plt.legend(prop={'size':35})
     plt.tight_layout()
-    plt.savefig('score.png', dpi=100)
+    plt.savefig('score_2.png', dpi=100)
     plt.close('all')
 
 if __name__ == '__main__':
@@ -197,6 +222,4 @@ if __name__ == '__main__':
     # model = joblib.load('/Users/benjamin/Desktop/DSI/simpsons_analysis/stacked_model.pkl')
     print('stacked model score = ', final_score)
 
-# side note - I want to add in these details from scripts:
 # song (bool)
-# monologue (line len > 90 words)

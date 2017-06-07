@@ -96,27 +96,26 @@ def plot_errors(ab_train, ab_test, gbr_train, stacked_test):
     plt.tight_layout()
     plt.savefig('training_testing_error.png', dpi=100)
 
-def build_gbr(training_x, training_y, abr_test, hold_out_x, holdout_y, _abr, trees = 10000):
+def build_gbr(training_x, training_y, abr_test, holdout_x, holdout_y, _abr, trees = 5000):
     # > BUILD GRADIENT BOOSTED REGRESSOR
     # train gradient boosted model on all of X with rfr and abr scores
     _gbr = g_br(loss = 'lad', learning_rate = .1, n_estimators=trees, warm_start=False, verbose=False)
-    score_gbr = sqrt(abs(np.array(cvs(_gbr, training_x, training_y, cv=5, n_jobs = -1, verbose = False, scoring = 'neg_mean_squared_error')).mean()))
-    print('Gradient_Boosted_score_cross_val_score = ', score_gbr, 'trees = {0}'.format(trees))
-    final_score, rounds = 10, 0
-    while final_score > .5 and rounds <= 20:
+    gbr_train = sqrt(abs(np.array(cvs(_gbr, training_x, training_y, cv=5, n_jobs = -1, verbose = False, scoring = 'neg_mean_squared_error')).mean()))
+    print('Gradient_Boosted_score_cross_val_score = ', gbr_train, 'trees = {0}'.format(trees))
+    final_score, rounds = 10, 20
+    while final_score > abr_test:
         # get RMSE (take square root of absolute value of negative mse)
         _gbr = g_br(loss = 'lad', learning_rate = .5, n_estimators=trees, warm_start=False, verbose=False)
         # fit to training set
         _gbr.fit(training_x, training_y)
         # get holdout score
-        final_score = predict_on_holdout(_abr, _gbr, hold_out_x, holdout_y)
+        final_score = predict_on_holdout(_abr, _gbr, holdout_x, holdout_y)
         print('final_score = ', final_score, 'trees = ', trees)
-        trees = np.random.randint(2000, 12000)
-        rounds += 1
+        trees = np.random.randint(2000, 10000)
         # once threshold is met, get feature importances and plot errors
-    return _gbr, final_score, score_gbr
+    return _gbr, final_score, gbr_train
 
-def build_abr(training_x, training_y, hold_out_x, holdout_y, trees = 1000):
+def build_abr(training_x, training_y, holdout_x, holdout_y, trees = 1000):
     # > BUILD ADABOOST REGRESSOR
     # train adaboost with new X using 5-fold Cross Validation
     _abr = a_br(n_estimators=trees, learning_rate=.23, loss = 'exponential')
@@ -124,17 +123,12 @@ def build_abr(training_x, training_y, hold_out_x, holdout_y, trees = 1000):
     # get RMSE (take square root of absolute value of negative mse)
     abr_train = sqrt(abs(np.array(cvs(_abr, training_x, training_y, cv=5, n_jobs = -1, verbose = False, scoring = 'neg_mean_squared_error')).mean()))
     print('Adaboost_cross_val_score = ', abr_train, 'trees = {0}'.format(trees))
-    abr_test, rounds = 10, 0
-    while (abr_test > .5 or abr_test < .46) and rounds <= 20:
-        _abr = a_br(n_estimators=trees, learning_rate=.9, loss = 'exponential')
-        # fit to training set
-        _abr.fit(training_x, training_y)
-        # get holdout score
-        abr_test = sqrt(mse(holdout_y, _abr.predict(hold_out_x)))
-        print('holdout_score = ', abr_test)
-        trees = np.random.randint(35, 550)
-        rounds += 1
-        # once threshold is met, pass on the model
+    _abr = a_br(n_estimators=trees, learning_rate=.9, loss = 'exponential')
+    # fit to training set
+    _abr.fit(training_x, training_y)
+    # get holdout score
+    abr_test = sqrt(mse(holdout_y, _abr.predict(holdout_x)))
+    print('holdout_score = ', abr_test)
     return _abr, abr_test, abr_train
 
 def stack_models(df, trees = 1000):
@@ -149,22 +143,21 @@ def stack_models(df, trees = 1000):
     # build stacked model using Gradient Boost, AdaBoost, and Random Forest
 
     # train test split to get training , hold out
-    training_x, hold_out_x, training_y, holdout_y = tts(X, y, test_size = .2)
+    training_x, holdout_x, training_y, holdout_y = tts(X, y, test_size = .2)
 
-    _abr, abr_test, abr_train = build_abr(training_x, training_y, hold_out_x, holdout_y)
+    _abr, abr_test, abr_train = build_abr(training_x, training_y, holdout_x, holdout_y)
 
     # predict all training values and pass back into X
     training_x['abr_score'] = _abr.predict(training_x)
-    hold_out_x['abr_score'] = _abr.predict(hold_out_x)
-
-    _gbr, final_score, gbr_train = build_gbr(training_x, training_y, abr_test, hold_out_x, holdout_y, _abr)
+    holdout_x['abr_score'] = _abr.predict(holdout_x)
+    _gbr, final_score, gbr_train = build_gbr(training_x, training_y, abr_test, holdout_x, holdout_y, _abr)
     if final_score > .4495:
-        stack_models(df)
-    else:
-        print(sorted(list(zip(_gbr.feature_importances_, ['id', 'number_in_season', 'title_len', 'election_year', 'line_lengths', 'max_line_length', 'major_char_lines', 'locations_in_ep', 'abr_score'])), reverse=True))
-        plot_errors(abr_train, abr_test, gbr_train, final_score)
-        joblib.dump(_gbr, 'stacked_model.pkl')
-        return _abr, _gbr, hold_out_x, holdout_y
+        stack_models(df, trees = 1000)
+    print(sorted(list(zip(_gbr.feature_importances_, ['id', 'number_in_season', 'title_len', 'election_year', 'line_lengths', 'max_line_length', 'major_char_lines', 'locations_in_ep', 'abr_score'])), reverse=True))
+    plot_errors(abr_train, abr_test, gbr_train, final_score)
+    joblib.dump(_gbr, 'stacked_model.pkl')
+    joblib.dump(_abr, 'adaboost_model.pkl')
+    return _abr, _gbr, holdout_x, holdout_y, final_score
 
 def predict_on_holdout(_abr, _gbr, x_h, y_h):
     x_h = x_h[['id', 'number_in_season', 'title_len', 'election_year', 'line_lengths', 'max_line_length', 'major_char_lines', 'locations_in_ep']]
@@ -200,8 +193,9 @@ if __name__ == '__main__':
     # loc_filename = 'simpsons_locations.csv'
     episode_df = return_clean_script_df("data/simpsons_script_lines.csv", clean_episode_data(e_filename))
     # get rmse for stacked model with kwarf 'rmse'
-    _abr, _gbr, x_h, y_h = stack_models(episode_df)
-    print('stacked model score = ', predict_on_holdout(_abr, _gbr, x_h, y_h))
+    _abr, _gbr, x_h, y_h, final_score = stack_models(episode_df)
+    # model = joblib.load('/Users/benjamin/Desktop/DSI/simpsons_analysis/stacked_model.pkl')
+    print('stacked model score = ', final_score)
 
 # side note - I want to add in these details from scripts:
 # song (bool)

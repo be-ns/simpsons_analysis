@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import pickle
 
 from math import sqrt
 from sklearn.ensemble import GradientBoostingRegressor as g_br, RandomForestRegressor as r_fr, AdaBoostRegressor as a_br
@@ -74,16 +73,7 @@ def return_clean_script_df(fname, df):
     df.columns = ['id', 'original_air_date', 'season', 'number_in_season', 'number_in_series', 'views', 'imdb_rating', 'title_len', 'election_year', 'line_lengths', 'max_line_length', 'major_char_lines', 'locations_in_ep']
     return df
 
-def knn_imputer(column, df):
-    knn = k_nn(n_neighbors = 3)
-    _df = df.dropna()
-    x, y = df[[x for x in _df.columns.tolist() if x != column]], _df[column]
-    knn.fit(x, y)
-    knn.predict
-
-
 def _fill_nans(df):
-    df.views.fillna(df.views.mean(), inplace=True)
     df.imdb_rating.fillna(df.imdb_rating.mean(), inplace=True)
     df.major_char_lines.fillna(df.major_char_lines.mean(),inplace=True)
     df.max_line_length.fillna(df.max_line_length.mean(),inplace=True)
@@ -101,11 +91,11 @@ def plot_errors(ab_train, ab_test, gbr_train, stacked_test):
     ax.tick_params(labelsize=20)
     ax.set_title('Training Error to Test Error', size=40)
     ax.set_xlabel('Model / Stage', size=35)
-    ax.set_xticks([1, 2], set('AdaBoost', 'Gradient Boost'), rotation=45))
+    ax.set_xticks([1, 2], set('AdaBoost', 'Gradient Boost'), rotation=45)
     ax.set_ylabel('RMSE', size = 35)
     plt.legend(prop={'size':14})
     plt.tight_layout()
-    plt.savefig('error_2.png', dpi=100)
+    plt.savefig('error.png', dpi=100)
 
 def build_gbr(training_x, training_y, abr_test, holdout_x, holdout_y, _abr, trees = 5000):
     # > BUILD GRADIENT BOOSTED REGRESSOR
@@ -208,7 +198,7 @@ def plot_scores(df, rmse):
     ax.set_ylabel('Rating on 10 point scale', size = 35)
     plt.legend(prop={'size':35})
     plt.tight_layout()
-    plt.savefig('score_2.png', dpi=100)
+    plt.savefig('score.png', dpi=100)
     plt.close('all')
 
 if __name__ == '__main__':
@@ -221,5 +211,3 @@ if __name__ == '__main__':
     _abr, _gbr, x_h, y_h, final_score = stack_models(episode_df)
     # model = joblib.load('/Users/benjamin/Desktop/DSI/simpsons_analysis/stacked_model.pkl')
     print('stacked model score = ', final_score)
-
-# song (bool)

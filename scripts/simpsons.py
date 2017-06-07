@@ -203,10 +203,10 @@ def plot_scores(df, rmse):
 
 if __name__ == '__main__':
     # read in episode data to Pandas DataFrame
-    e_filename = 'data/simpsons_episodes.csv'
+    e_filename = '../data/simpsons_episodes.csv'
     # read in raw episode data, return clean episode pandas dataframe
     # loc_filename = 'simpsons_locations.csv'
-    episode_df = return_clean_script_df("data/simpsons_script_lines.csv", clean_episode_data(e_filename))
+    episode_df = return_clean_script_df("../data/simpsons_script_lines.csv", clean_episode_data(e_filename))
     # get rmse for stacked model with kwarf 'rmse'
     _abr, _gbr, x_h, y_h, final_score = stack_models(episode_df)
     # model = joblib.load('/Users/benjamin/Desktop/DSI/simpsons_analysis/stacked_model.pkl')

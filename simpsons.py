@@ -32,8 +32,8 @@ def clean_episode_data(filename):
     df['election_year'] = df['original_air_date'].apply(lambda x: 1 if x.year % 4 == 0 else 0)
 
     # drop any unnecesary columns
-    df.drop(labels=['title', 'image_url','video_url','imdb_votes', 'production_code'], axis=1, inplace = True)
-    # call and return cleaning function
+    df.drop(labels=['title','imdb_votes', 'production_code'], axis=1, inplace = True)
+    # return clean df
     return df
 
 def add_location_data(script_df):
@@ -61,7 +61,6 @@ def return_clean_script_df(fname, df):
     # get totals for each episode for different features and merge into original DF
     line_length_series = script_df.groupby('episode_id')['word_count'].mean()
     monologues = script_df.groupby('episode_id')['word_count'].max()
-
     df = df.merge(pd.DataFrame(line_length_series), how='left', left_on = 'id', right_index=True)
     df = df.merge(pd.DataFrame(monologues), how='left', left_on = 'id', right_index=True)
     # get number of lines spoken by major characters (AKA the Simpsons) and all characters
@@ -76,7 +75,7 @@ def return_clean_script_df(fname, df):
     df = df.merge(pd.DataFrame(loc_series), how='left', left_on = 'id',  right_index=True)
 
     #rename columns to avoid confusion and return df
-    df.columns = ['id', 'original_air_date', 'season', 'number_in_season', 'number_in_series', 'views', 'imdb_rating', 'title_len', 'election_year', 'line_lengths', 'max_line_length', 'major_char_lines', 'locations_in_ep']
+    df.columns = ['id', 'original_air_date', 'season', 'number_in_season', 'number_in_series', 'views', 'imdb_rating', 'image_url', 'video_url', 'title_len', 'election_year', 'line_lengths', 'max_line_length', 'major_char_lines', 'locations_in_ep']
     return df
 
 def _fill_nans(df):

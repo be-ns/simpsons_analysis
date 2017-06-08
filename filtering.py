@@ -99,28 +99,38 @@ def politicize(episode_df, scripts, p_b):
     return merged_df
 
 def initialize():
+    #set dict for future weighting of episodes to be returned
+    weights = dict('char':0, 'location':0)
+
     # filter on Character
     char = input('favorite Simpsons Character  :  ').lower().strip().strip(punctuation)
+    #update weights
+    weights['char'] = int(input('How important is it that your suggested episode features this character [1-10]  :  ').strip())
+    # call function to get character ratios
     episode_df_, scripts = filter_df(char)
 
     # filter on Location
     location = input('favorite Simpsons Location - type [H] to see options : ').lower().strip().strip(punctuation)
+    # update weights
+    weights['location'] = int(input('How important is it that your suggested episode features this location [1-10]  :  ').strip())
+    # don't let location be nothing
     while location == 'h':
         loc_df = pd.read_csv('data/simpsons_locations.csv')
         print([x.lower().strip(punctuation) for x in loc_df.as_matrix()[:,1]])
         location = input('favorite Simpsons Location  :  ').lower().strip().strip(punctuation)
-    else:
-        episode_df = filter_locations(episode_df_, location, scripts)
-        episode_df.drop(labels=['imdb_votes', 'episode_id_x', 'episode_id_y'], axis=1, inplace=True)
+    # once they have a location selected
+    episode_df = filter_locations(episode_df_, location, scripts)
+    episode_df.drop(labels=['imdb_votes', 'episode_id_x', 'episode_id_y'], axis=1, inplace=True)
 
-    # filter on if there is a song or not
+    # filter on if songs appear in the episode
     song_bool = input("Do you like songs in your Simpson's Episodes? [N], [y] : ").strip(punctuation).lower()[0].strip()
     episode_df = get_song(episode_df, song_bool, scripts)
 
     # filter on political episode or not
     political_bool = input("Do you enjoy political humor or topics within your Simpsons episode? [Y], [n]  :  ").strip(punctuation).lower()[0].strip()
     episode_df = politicize(episode_df, scripts, political_bool)
-    episode_df.drop(labels = ['episode_id_x', 'episode_id_y'], axis=1, inplace = True)
+
+    # return the episode name and the link to view it
     print(episode_df.sort_values(by=['char_ratio', 'loc_ratio', 'song', 'politics', 'imdb_rating'], ascending=False).head(1)[['id','title']])
 
 

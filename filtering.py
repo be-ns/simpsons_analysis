@@ -2,6 +2,7 @@ import pandas as pd
 import simpsons as s
 import numpy as np
 from string import punctuation
+import loading_data as ld
 
 
 def filter_df(char, scripts = "data/simpsons_script_lines.csv", episodes = "data/simpsons_episodes.csv"):
@@ -37,7 +38,6 @@ def filter_df(char, scripts = "data/simpsons_script_lines.csv", episodes = "data
     # merge that into the episode DF and return DF
     merged_df = episode_df.merge(char_ratio, how='left', left_on = 'id', right_on='episode_id')
     merged_df.char_ratio.fillna(0, inplace=True)
-    # print(merged_df.head())
     return merged_df, scripts
 
 def filter_locations(episode_df, location, scripts):
@@ -76,7 +76,8 @@ def get_song(episode_df, s_b, scripts):
         script_df = script_df[['episode_id', 'song']][script_df['song'] != 0]
     else:
         script_df = script_df[['episode_id', 'song']][script_df['song'] == 0]
-    merged_df = episode_df.merge(script_df, how='left', left_on = 'id', right_on='episode_id')
+    script_df = script_df.groupby('episode_id', as_index = False).count()
+    merged_df = episode_df.merge(script_df, how='left', left_on = 'id', right_on = 'episode_id')
     merged_df.song.fillna(0.0, inplace=True)
     return merged_df[merged_df['song'] >= 1].sort_values('episode_id', ascending=True)
 
@@ -98,45 +99,29 @@ def politicize(episode_df, scripts, p_b):
     merged_df = episode_df.merge(script_df, how='left', left_on = 'id', right_on='episode_id')
     return merged_df
 
-def initialize():
-    #set dict for future weighting of episodes to be returned
-    weights = {'char':0, 'location':0}
-
-    # filter on Character
-    char = input('favorite Simpsons Character  :  ').lower().strip().strip(punctuation)
-    #update weights
-    weights['char'] = int(input('How important is it that your suggested episode features this character [1-10]  :  ').strip())
-    # call function to get character ratios
-    episode_df_, scripts = filter_df(char)
-
-    # filter on Location
-    location = input('favorite Simpsons Location - type [H] to see options : ').lower().strip().strip(punctuation)
-    # update weights
-    weights['location'] = int(input('How important is it that your suggested episode features this location [1-10]  :  ').strip())
-    # don't let location be nothing
-    while location == 'h':
-        loc_df = pd.read_csv('data/simpsons_locations.csv')
-        print([x.lower().strip(punctuation) for x in loc_df.as_matrix()[:,1]])
-        location = input('favorite Simpsons Location  :  ').lower().strip().strip(punctuation)
-    # once they have a location selected
-    episode_df = filter_locations(episode_df_, location, scripts)
+def initialize(char, char_weight, location, loc_weight, song, politics):
+    episode_df, scripts = filter_df(char)
+    episode_df = filter_locations(episode_df, location, scripts)
     episode_df.drop(labels=['imdb_votes', 'episode_id_x', 'episode_id_y'], axis=1, inplace=True)
-
-    # filter on if songs appear in the episode
-    song_bool = input("Do you like songs in your Simpson's Episodes? [N], [y] : ").strip(punctuation).lower()[0].strip()
-    episode_df = get_song(episode_df, song_bool, scripts)
-
-    # filter on political episode or not
-    political_bool = input("Do you enjoy political humor or topics within your Simpsons episode? [Y], [n]  :  ").strip(punctuation).lower()[0].strip()
-    episode_df = politicize(episode_df, scripts, political_bool)
-
-    # return the episode name and the link to view it
-    if weights['char'] > weights ['location']:
-        print(episode_df.sort_values(by=['char_ratio', 'loc_ratio', 'song', 'politics', 'imdb_rating'], ascending=False)  \
-                .head(1)[['id','title']])
+    episode_df = get_song(episode_df, song, scripts)
+    episode_df = politicize(episode_df, scripts, politics)
+    if char_weight > loc_weight:
+        return episode_df.sort_values(by=['char_ratio', 'loc_ratio', 'song', 'politics', 'imdb_rating'], ascending=False)['id'].head(1)
     else:
-        print(episode_df.sort_values(by=['loc_ratio', 'char_ratio', 'song', 'politics', 'imdb_rating'], ascending=False)  \
-                .head(1)[['id','title']])
+        return episode_df.sort_values(by=['loc_ratio', 'char_ratio', 'song', 'politics', 'imdb_rating'], ascending=False)['id'].head(1)
+
+def return_suggested(pred_list):
+    char = pred_list[0]
+    char_weight = pred_list[1]
+    location = pred_list[2]
+    loc_weight = pred_list[3]
+    song = pred_list[4]
+    politics = pred_list[5]
+    recommended_id = initialize(char, char_weight, location, loc_weight, song, politics).values[0]
+    df = ld.load_data()
+    return df[df['id']==recommended_id][['title', 'predicted', 'imdb_rating', 'image_url', 'video_url']]
+
+
 
 if __name__ == '__main__':
-    initialize()
+    initialize(['homer', 2, 'home', 3, 0, 1])

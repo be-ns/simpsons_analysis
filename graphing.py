@@ -18,7 +18,6 @@ def initialize():
     # read in raw episode data, return clean episode pandas dataframe
     episode_df = s.return_clean_script_df("data/simpsons_script_lines.csv", s.clean_episode_data(e_filename))
     df = s._fill_nans(episode_df)
-    seasons = df.season
     # get X and y
     X, y = df[['id', 'number_in_season', 'title_len', 'election_year', 'line_lengths', 'max_line_length', 'major_char_lines', 'locations_in_ep']], df['imdb_rating']
     # X['abr_score'] = abm.predict(X)
@@ -58,15 +57,8 @@ def tmap(X, y, abm, gbm):
 
     _plot_train_test_errors(models, training_errors, testing_errors)
 
-
 def _plot_train_test_errors(models, training_errors, testing_errors):
-    n_groups = 5
-
-    means_men = training_errors
-
-
-    means_women = testing_errors
-
+    n_groups = len(training_errors)
     fig, ax = plt.subplots()
 
     index = np.arange(n_groups)
@@ -74,7 +66,6 @@ def _plot_train_test_errors(models, training_errors, testing_errors):
 
     opacity = 0.7
     error_config = {'ecolor': '0.3'}
-
     rects1 = plt.bar(index, training_errors, bar_width,
                      alpha=opacity,
                      color='#FF8B00',
@@ -92,7 +83,6 @@ def _plot_train_test_errors(models, training_errors, testing_errors):
     plt.title('Training / Testing Error by model')
     plt.xticks(index + bar_width / 2, ('KNN', 'Random Forest', 'AdaBoost Tree', 'Gradient Boosted Tree', 'Final Stacked Model'),  rotation=40)
     plt.legend()
-
     plt.tight_layout()
     plt.savefig('error_rates.png', dpi=300)
 

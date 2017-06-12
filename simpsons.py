@@ -270,6 +270,7 @@ def plot_scores(df, rmse):
     # build figure and plot correct and incorrect rmse by order of episode ID
     fig = plt.figure(figsize=(35,15))
     ax = fig.add_subplot(111)
+    df = df.sort_values('id')
     ax.plot(df['id'], df['rating'], label='True Rating', color='r', lw=5, alpha=.4)
     ax.plot(df['id'], df['predicted'], label = 'Predicted Rating', color = 'b', lw =5, alpha = .4)
 

@@ -1,8 +1,8 @@
 import pandas as pd
 import simpsons as s
 import numpy as np
-
 from string import punctuation
+
 
 def filter_df(char, scripts = "data/simpsons_script_lines.csv", episodes = "data/simpsons_episodes.csv"):
     '''
@@ -100,7 +100,7 @@ def politicize(episode_df, scripts, p_b):
 
 def initialize():
     #set dict for future weighting of episodes to be returned
-    weights = dict('char':0, 'location':0)
+    weights = {'char':0, 'location':0}
 
     # filter on Character
     char = input('favorite Simpsons Character  :  ').lower().strip().strip(punctuation)
@@ -131,8 +131,12 @@ def initialize():
     episode_df = politicize(episode_df, scripts, political_bool)
 
     # return the episode name and the link to view it
-    print(episode_df.sort_values(by=['char_ratio', 'loc_ratio', 'song', 'politics', 'imdb_rating'], ascending=False).head(1)[['id','title']])
-
+    if weights['char'] > weights ['location']:
+        print(episode_df.sort_values(by=['char_ratio', 'loc_ratio', 'song', 'politics', 'imdb_rating'], ascending=False)  \
+                .head(1)[['id','title']])
+    else:
+        print(episode_df.sort_values(by=['loc_ratio', 'char_ratio', 'song', 'politics', 'imdb_rating'], ascending=False)  \
+                .head(1)[['id','title']])
 
 if __name__ == '__main__':
     initialize()

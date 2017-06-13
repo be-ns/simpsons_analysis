@@ -1,0 +1,231 @@
+body {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    float: right;
+    background-color: black;
+}
+.navbar-container {
+    width: 100%;
+    float: left;
+    position: relative;
+}
+
+.navbar {
+    z-index: 1000;
+    border: none;
+    border-radius: 0;
+    margin-bottom: 0;
+}
+
+.navbar li a, a.navbar-brand {
+    color: #ff69b4;
+    text-shadow: none;
+    font-weight: bold;
+}
+
+.navbar a.navbar-brand {
+    font-size: 32px;
+}
+
+.navbar-right li:hover {
+    opacity: .8;
+    color: #000;
+    border-color: #FC4C02;
+}
+
+.navbar-toggle .icon-bar {
+    background-color: white;
+}
+
+.navbar-toggle {
+    background-color: #FC4C02;
+}
+
+.main-container{
+    position: absolute;
+    top: -100px;
+    float:left;
+    width: 100%;
+    height: 750px;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    background-size: cover;
+    -o-background-size: cover;
+    background-position: center;
+    background-image: url('../images/header.jpg');
+    text-align: center;
+    color: white;
+}
+
+.button-container {
+    position: relative;
+    width: 100%;
+    float: left;
+    max-width: 960px;
+    padding-right: 30px;
+    padding-left: 30px;
+    margin:0 auto;
+}
+
+.main {
+    top: 180px;
+    position: relative;
+    max-width: 500px;
+    float: right;
+}
+
+.main h1 {
+    font-size: 42px;
+    width: 100%;
+    float: right;
+    font-family: 'MaisonNeue', 'Helvetica', Arial, sans-serif;
+    color: #4F5052;
+}
+
+.inner-container p {
+    width: 100%;
+    margin:0 auto;
+
+}
+.main .images {
+    width: 100%;
+    color: #4F5052;
+}
+
+.main img {
+    transition: all .2s ease-in-out;
+}
+.main img:hover {
+    transform: scale(1.1);
+    cursor: pointer;
+}
+
+.activity-title {
+    width: 100%;
+    padding: 20px;
+}
+
+form {
+    max-width: 400px;
+    margin: 0 auto;
+    padding-top: 50px;
+}
+
+form label {
+    color: lightgrey;
+}
+
+.btn {
+    background-color: #FC4C02;
+    color: white;
+}
+
+.btn:hover {
+    opacity: .8;
+    color: white;
+}
+
+.main-container p{
+    padding-top: 400px;
+    padding-bottom: 100px;
+    font-size: 24px;
+    text-align: center;
+    max-width: 1000px;
+    color: #4F5052;
+}
+
+.contact-container {
+    width: 100%;
+    position: absolute;
+    margin:0 auto;
+}
+
+.icon-bar {
+    text-align: center;
+    background-color: #4F5052;
+    overflow: auto;
+}
+
+.icon-bar a {
+    width: 25%;
+    padding: 12px 0;
+    float: left;
+    transition: all 0.3s ease;
+    color: white;
+    font-size: 36px;
+}
+
+.icon-bar a:hover {
+    background-color: #000;
+}
+
+.sr-contact {
+  font-size: 40px;
+  width: 100%
+}
+
+.profile-photo {
+    position: relative;
+    float: right;
+    padding-top: 40px;
+    margin-left:90px;
+    margin-right:90px;
+}
+
+.contact-container p {
+    position: relative;
+    max-width: 500px;
+    padding-top: 60px;
+    /*padding-left: 90px;*/
+    text-align: left;
+    color: white;
+    font-size: 18px;
+    margin-left:90px;
+    margin-right:90px;
+}
+
+.outer-container {
+    width: 100%;
+    float: left;
+    position: relative;
+}
+
+.results-main {
+    margin: 0 auto;
+    max-width: 960px;
+    color: white;
+}
+
+.results-title {
+    padding: 20px;
+}
+
+th {
+    font-size: 30px;
+    padding: 20px;
+    border-bottom: 1px solid white;
+}
+
+td {
+    font-size: 20px;
+    padding: 20px;
+}
+
+.activity-description {
+    width: 100%;
+    float: right;
+    height: 30px;
+    font-size: 32px;
+    padding-left: 600px;
+    margin-top: 35px;
+    color: white;
+}
+
+.content-container .col-lg-8 {
+    color: white;
+}
+
+.well {
+  color: black;
+}

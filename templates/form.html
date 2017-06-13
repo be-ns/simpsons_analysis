@@ -1,0 +1,125 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <link href="https://fonts.googleapis.com/css?family=Audiowide" rel="stylesheet">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <!-- link to type ahead -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.2/bootstrap3-typeahead.min.js"></script>
+
+    <script src="../js/colorado_cities_typahead.js"></script>
+
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='/css/style.css') }}">
+
+    <!-- <link rel=stylesheet type=text/css href="{{ url_for('static', filename='images/header.jpg') }}"> -->
+
+</head>
+
+<div class='navbar-container'>
+    <nav class="navbar">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/" style="font-family: 'Audiowide', cursive">100,000 Lines of the Simpson's</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="/how_it_works">How It Works</a></li>
+                    <li><a href="/contact">Contact</a></li>
+                </ul>
+            </div><!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+    </nav>
+</div>
+<body>
+    <div class='form-container'>
+        <div class='inner-container'>
+            <h1 class='activity-title'>Excellent, let's go!</h1>
+            <form action='/results' method='POST'>
+            <div class="form-group">
+                <label for="city">Of the following: Who is your Favorite Character?</label>
+                <select type="text" class="form-control" name='char'>
+                    <option selected>Select a Character</option>
+                    {% for o in char_list %}
+                    <option value="{{ o }}">{{ o }}</option>
+                    {% endfor %}
+                    <option value="seven">Five</option> -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="char_weight">How important is it for you to have this character in the recommended episode?</label>
+                <select type="text" class="form-control" name='char_weight'>
+                    <option selected>Importance of Character</option>
+                    {% for cw in char_weight %}
+                    <option value="{{ cw }}">{{ cw }}</option>
+                    {% endfor %} -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="fav_location">Of the following: What is your favorite Location?</label>
+                <select type="text" class="form-control" name='fav_location'>
+                    <option selected>Select a location</option>
+                    {% for loc in fav_location %}
+                    <option value="{{ loc }}">{{ loc }}</option>
+                    {% endfor %} -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="loc_weight">How important is it for the recommended episode to have that Location?</label>
+                <select type="text" class="form-control" name='loc_weight'>
+                    <option selected>Importance of Location</option>
+                    {% for w in loc_weight %}
+                    <option value="{{ w }}">{{ w }}</option>
+                    {% endfor %} -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="song">True or False: The Simpsons is better with Music</label>
+                <select type="text" class="form-control" name='song'>
+                    <option selected>Select an Option</option>
+                    {% for s in song %}
+                    <option value="{{ s }}">{{ s }}</option>
+                    {% endfor %} -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="politics">True or False: The Simpsons is best when they engage with politics</label>
+                <select type="text" class="form-control" name='politics'>
+                    <option selected>Select an Option</option>
+                    {% for p in politics %}
+                    <option value="{{ p }}">{{ p }}</option>
+                    {% endfor %} -->
+                </select>
+          </div>
+            <a href = "/results">
+            <button type="submit" class="btn orange">Submit</button>
+          </a>
+        </form>
+    </div>
+</div>
+</div>
+</body>
+</html>

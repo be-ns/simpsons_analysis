@@ -1,0 +1,77 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <link href="https://fonts.googleapis.com/css?family=Audiowide" rel="stylesheet">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    <script src="https://use.fontawesome.com/d660905f7f.js"></script>
+
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='/css/style.css') }}">
+
+
+    <!-- <link rel=stylesheet type=text/css href="{{ url_for('static', filename='images/header.jpg') }}"> -->
+
+
+</head>
+
+<body>
+    <div class='navbar-container'>
+        <nav class="navbar">
+          <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="/" style="font-family: 'Audiowide', cursive">VeloSpark</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+
+
+              <ul class="nav navbar-nav navbar-right">
+                  <li><a href="/how_it_works">How It Works</a></li>
+                  <li><a href="/contact">Contact</a></li>
+              </ul>
+            </div><!-- /.navbar-collapse -->
+          </div><!-- /.container-fluid -->
+        </nav>
+        <div class='contact-container'>
+            <div class="icon-bar">
+                <a href='https://www.strava.com/athletes/7202879'><img src="images/strava-white-5f38af0beeb212284be95b10bb8544b4.svg" style="width:128px;height:27px;">
+                </a>
+                <a href='http://linkedin.com/in/gdmacmillan'><img src="images/Logo-White-66px-R.png" style="width:134px;height:33px;">
+                </a>
+                <a href="http://github.com/gdmacmillan"><img src="images/GitHub-Mark-Light-64px.png" style="width:40px;height:40px;">
+                </a>
+                <a href="mailto:gmacilla@ymail.com"><i class="fa fa-envelope-o fa-3x sr-contact"></i>
+                </a>
+            </div>
+            <div class='profile-photo'>
+                <img src="images/denver-platte-ds-headshot-15-400x400.jpg" class="img-rounded" alt="Data Wrangling Badass" width="400" height="400">
+            </div>
+            <p>I am driven in applying machine learning techniques and data visualization to big datasets w/ 8+ years of experience in engineering.<br><br>I have a wealth of experience in different facets of professional engineering and always work to ensure that complicated engineering solutions be completed on time.<br><br>My passions include sustainability, computer science and aerospace engineering. I also enjoy cycling, smoothies and consider Ben Howard to be one of the most fascinating recording artists of the modern day.<br><br>Want to get to know me? Follow me at one of the links above.</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

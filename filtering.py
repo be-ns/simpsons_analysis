@@ -80,40 +80,38 @@ def politicize(episode_df, scripts, politics):
     script_df.drop(labels = ['president', 'political', 'election', 'congress', 'right-wing', 'immigration', 'environment', 'campaign', 'clinton', 'obama', 'cheney'], axis = 1, inplace = True)
     script_df = script_df[['episode_id', 'politics']].groupby(by=['episode_id'], as_index=False).sum()
     script_df.fillna(0, inplace=True)
-    print(script_df.shape)
     merged_df = episode_df.merge(script_df, how='left', left_on = 'id', right_on='episode_id')
-    print(merged_df.shape)
     return merged_df
 
-def initialize(char, char_weight, location, loc_weight, song, politics):
-    print('hi')
+def initialize(char, location, val, song, politics):
     episode_df, scripts = filter_df(char)
     episode_df = filter_locations(episode_df, location, scripts)
     episode_df.drop(labels=['production_code', 'us_viewers_in_millions', 'imdb_votes', 'episode_id_x', 'char_lines', 'non_char_lines', 'episode_id_y', 'loc_lines', 'non_loc_lines', 'views'], axis=1, inplace=True)
-    print('hello')
     episode_df = get_song(episode_df, scripts, song)
     episode_df = politicize(episode_df, scripts, politics)
-    if char_weight > loc_weight:
-        x = episode_df.sort_values(by=['imdb_rating', 'song', "politics", "char_ratio", 'loc_ratio'], ascending = False)
-        print(x.head(2))
-        return x
+    episode_df = episode_df.dropna()
+    if val == 'Characters':
+        episode_df = episode_df.sort_values(by=["char_ratio", "loc_ratio"], ascending = [False,False])[:40][episode_df['loc_ratio'] != 0.0].sort_values(by = ['song'], ascending= False)[:20][episode_df['char_ratio'] != 0.0].sort_values(by = ["politics"], ascending = False)[:5]
+        episode_df = episode_df.sort_values(by=['imdb_rating'],ascending=False).head(1)
+        return episode_df.id
     else:
-        x = episode_df.sort_values(by=['imdb_rating', 'song', "politics", "loc_ratio", 'char_ratio'], ascending = False)
-        print(x.head(2))
-        return x
+        episode_df = episode_df.sort_values(by=["loc_ratio", "char_ratio"], ascending = [False,False])[:40][episode_df['loc_ratio'] != 0.0].sort_values(by = ['song'], ascending= False)[:20][episode_df['char_ratio'] != 0.0].sort_values(by = ["politics"], ascending = False)[:5]
+        return episode_df.sort_values(by=['imdb_rating'],ascending=False).id
 
 
 def return_suggested(pred_list):
     char = pred_list[0]
-    char_weight = pred_list[1]
-    location = pred_list[2]
-    loc_weight = pred_list[3]
-    song = pred_list[4]
-    politics = pred_list[5]
-    recommended_id = initialize(char, char_weight, location, loc_weight, song, politics)
+    location = pred_list[1]
+    val = pred_list[2]
+    song = pred_list[3]
+    politics = pred_list[4]
+    recommended_id = initialize(char, location, val, song, politics).head(1).values
     # print(recommended_id)
     df = ld.load_data()
-    return df[df['id']==recommended_id][['title', 'predicted', 'imdb_rating', 'image_url', 'video_url']].head(1)
+    # print(df.columns.tolist())
+    for row in df.as_matrix():
+        if row[0] == recommended_id:
+            return [row[-1], row[8], row[10], row[11], row[12]]
 
 
 

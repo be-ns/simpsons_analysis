@@ -84,7 +84,8 @@ sub {
   bottom: -.25em;
 }
 img {
-  border: 0;
+  margin: auto;
+  width: 100%;
 }
 svg:not(:root) {
   overflow: hidden;
@@ -1112,16 +1113,21 @@ a:focus {
 figure {
   margin: 0;
 }
+
 img {
-  vertical-align: middle;
+  width: 100%;
+  z-index: 0;
+  height: 400px;
+  object-fit: cover;
 }
+
 .img-responsive,
 .thumbnail > img,
 .thumbnail a > img,
 .carousel-inner > .item > img,
 .carousel-inner > .item > a > img {
-  display: block;
-  max-width: 100%;
+  width: 100%;
+  z-index: 0;
   height: auto;
 }
 .img-rounded {

@@ -7,12 +7,14 @@
     <title></title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='/css/bootstrap.css') }}">
 
     <!-- Optional theme -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='/css/bootstrap.css') }}">
 
-    <link href="https://fonts.googleapis.com/css?family=Audiowide" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Helvetica" rel="stylesheet">
     <!-- Latest compiled and minified JavaScript -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
@@ -36,7 +38,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
               </button>
-              <a class="navbar-brand" href="/" style="font-family: 'Audiowide', cursive">100,000 Lines of the Simpsons</a>
+              <a class="navbar-brand" href="/" style="font-family: 'Helvetica'">100,000 Lines of the Simpsons</a>
             </div>
 
             <!-- Collect the nav links, forms, and other content for toggling -->
@@ -51,25 +53,21 @@
           </div><!-- /.container-fluid -->
         </nav>
     </div>
+    <div class='center'>
+      <img src = {{ image }} alt="image" >
+    </div>
     <div class='outer-container'>
         <div class='results-main'>
             <h1 class='results-title'> Matching Results: </h1>
             <table>
                 <thead>
-                    <th>Title</th>
-                    <th>Predicted imdb_rating</th>
-                    <th>Actual imdb_rating</th>
-                    <th>url_image</th>
-                    <th>url_video</th>
+                    <th>{{ title }}</th>
                 </thead>
                 <tbody>
                     <tr>
                         <td>
-                          {{ title }}
                           {{ pred }}
-                          {{ true }}
-                          {{ image }}
-                          {{ video }}
+                          {{ actual }}
                         </td>
                     </tr>
                 </tbody>

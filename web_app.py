@@ -37,22 +37,19 @@ def contact():
 @app.route('/go', methods=['GET', 'POST'])
 def get_activity_predictors():
     char_list = list(pd.read_csv('/Users/benjamin/Desktop/DSI/simpsons_analysis/data/simpsons_characters.csv').index)
-    char_weight = [1,2,3,4,5]
+    vals = ['Characters', 'Location']
     fav_location = list(pd.read_csv('/Users/benjamin/Desktop/DSI/simpsons_analysis/data/simpsons_locations.csv').index)
-    loc_weight = [1,2,3,4,5]
     song = [False,True]
     politics = [False,True]
-    return render_template('form.html', char_list=char_list, char_weight = char_weight, fav_location = fav_location, loc_weight=loc_weight, song = song, politics = politics)
+    return render_template('form.html', char_list=char_list, vals = vals, fav_location = fav_location, song = song, politics = politics)
 
 # This displays user inputs froms the form page
 @app.route('/results', methods=['GET', 'POST'] )
 def suggest_episode():
-    episode_list = fe.return_suggested([request.form['char'], int(request.form['char_weight']), request.form['fav_location'], int(request.form['loc_weight']), bool(request.form['song']), bool(request.form['politics'])])
-    episode_list = episode_list[0]
-    # episode list has the contains:
-    #       ['title', 'predicted', 'imdb_rating', 'image_url', 'video_url']
-    return render_template('results.html', title = episode_list[0], pred = episode_list[1], actual = episode_list[2], image = episode_list[3], video = episode_list[4])
+    episode_list = fe.return_suggested([str(request.form['char']), str(request.form['fav_location']), str(request.form['val']), bool(request.form['song']), bool(request.form['politics'])])
+    print(episode_list)
+    return render_template('results.html', title = str(episode_list[0]), pred = round(float(episode_list[1]), 2), actual = float(episode_list[2]), image = str(episode_list[3]), video = str(episode_list[4]))
 
 app.secret_key = os.urandom(24)
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=9002, debug=False)
+    app.run(host='0.0.0.0', port=9005, debug=False)

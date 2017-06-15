@@ -178,8 +178,7 @@ form label {
     position: relative;
     max-width: 500px;
     padding-top: 60px;
-    /*padding-left: 90px;*/
-    text-align: left;
+    text-align: center;
     color: white;
     font-size: 18px;
     margin-left:90px;
@@ -188,7 +187,7 @@ form label {
 
 .outer-container {
     width: 100%;
-    float: left;
+    float: center;
     position: relative;
 }
 
@@ -218,7 +217,6 @@ td {
     float: right;
     height: 30px;
     font-size: 32px;
-    padding-left: 600px;
     margin-top: 35px;
     color: white;
 }

@@ -69,15 +69,6 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="char_weight">How important is it for you to have this character in the recommended episode?</label>
-                <select type="text" class="form-control" name='char_weight'>
-                    <option selected>Importance of Character</option>
-                    {% for cw in char_weight %}
-                    <option value="{{ cw }}">{{ cw }}</option>
-                    {% endfor %} -->
-                </select>
-            </div>
-            <div class="form-group">
                 <label for="fav_location">Of the following: What is your favorite Location?</label>
                 <select type="text" class="form-control" name='fav_location'>
                     <option selected>Select a location</option>
@@ -87,11 +78,11 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="loc_weight">How important is it for the recommended episode to have that Location?</label>
-                <select type="text" class="form-control" name='loc_weight'>
-                    <option selected>Importance of Location</option>
-                    {% for w in loc_weight %}
-                    <option value="{{ w }}">{{ w }}</option>
+                <label for="val">Whish is more important, Character or Location?</label>
+                <select type="text" class="form-control" name='val'>
+                    <option selected>Select an Option</option>
+                    {% for v in vals %}
+                    <option value="{{ v }}">{{ v }}</option>
                     {% endfor %} -->
                 </select>
             </div>

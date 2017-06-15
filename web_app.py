@@ -52,4 +52,4 @@ def suggest_episode():
 
 app.secret_key = os.urandom(24)
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=9005, debug=False)
+    app.run(host='0.0.0.0', port=9006, debug=False)

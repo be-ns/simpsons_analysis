@@ -36,7 +36,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
               </button>
-              <a class="navbar-brand" href="/" style="font-family: 'Audiowide', cursive">VeloSpark</a>
+              <a class="navbar-brand" href="/" style="font-family: 'Audiowide', cursive">100,000 Lines of the Simpsons</a>
             </div>
 
             <!-- Collect the nav links, forms, and other content for toggling -->
@@ -56,21 +56,22 @@
             <h1 class='results-title'> Matching Results: </h1>
             <table>
                 <thead>
-                    <th>activity name</th>
-                    <th>distance (mi)</th>
-                    <th>elevation gain (ft)</th>
-                    <th>nearest city</th>
+                    <th>Title</th>
+                    <th>Predicted imdb_rating</th>
+                    <th>Actual imdb_rating</th>
+                    <th>url_image</th>
+                    <th>url_video</th>
                 </thead>
                 <tbody>
-                    {% for c1, c2, c3, c4, id in data %}
                     <tr>
-                        <td>{{ c1 }}</td>
-                        <td>{{ c2 }}</td>
-                        <td>{{ c3 }}</td>
-                        <td>{{ c4 }}</td>
-                        <td><a href="results/map/{{ id }}">Map</a></td>
+                        <td>
+                          {{ title }}
+                          {{ pred }}
+                          {{ true }}
+                          {{ image }}
+                          {{ video }}
+                        </td>
                     </tr>
-                    {% endfor %}
                 </tbody>
             </table>
         </div>

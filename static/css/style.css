@@ -31,15 +31,15 @@ body {
 .navbar-right li:hover {
     opacity: .8;
     color: #000;
-    border-color: #FC4C02;
+    border-color: #ffffff;
 }
 
 .navbar-toggle .icon-bar {
-    background-color: white;
+    background-color: #000000;
 }
 
 .navbar-toggle {
-    background-color: #FC4C02;
+    background-color: #C8C8C8;
 }
 
 .main-container{
@@ -117,8 +117,9 @@ form label {
 }
 
 .btn {
-    background-color: #FC4C02;
-    color: white;
+    background-color: #ff69b4;
+    color: #000000;
+    font-size: 20px;
 }
 
 .btn:hover {
@@ -132,7 +133,7 @@ form label {
     font-size: 24px;
     text-align: center;
     max-width: 1000px;
-    color: #4F5052;
+    color: #C8C8C8;
 }
 
 .contact-container {

@@ -47,19 +47,11 @@ def get_activity_predictors():
 # This displays user inputs froms the form page
 @app.route('/results', methods=['GET', 'POST'] )
 def suggest_episode():
-    fav_char = request.form['char']
-    char_weight = request.form['char_weight']
-    fav_location = request.form['location']
-    loc_weight = request.form['loc_weight']
-    song = 0 if request.form['musical_components'] == 'No' else 1
-    politics = 0 if request.form['elevation_gain'] == 'No' else 1
-
-    pred_list = [fav_char, char_weight, fav_location, loc_weight, song, politics]
-
-    # list contains:
+    episode_list = fe.return_suggested([request.form['char'], int(request.form['char_weight']), request.form['fav_location'], int(request.form['loc_weight']), bool(request.form['song']), bool(request.form['politics'])])
+    episode_list = episode_list[0]
+    # episode list has the contains:
     #       ['title', 'predicted', 'imdb_rating', 'image_url', 'video_url']
-    episode_list = fe.return_suggested(pred_list)
-    return render_template('results.html', data=pred_list)
+    return render_template('results.html', title = episode_list[0], pred = episode_list[1], actual = episode_list[2], image = episode_list[3], video = episode_list[4])
 
 app.secret_key = os.urandom(24)
 if __name__ == '__main__':

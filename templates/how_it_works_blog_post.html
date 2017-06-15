@@ -39,7 +39,7 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" href="/" style="font-family: 'Audiowide', cursive">VeloSpark</a>
+                    <a class="navbar-brand" href="/" style="font-family: 'Audiowide', cursive">100,000 Lines of the Simposns</a>
                 </div>
                 <!-- Collect the nav links, forms, and other content for toggling -->
                 <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -64,17 +64,17 @@
                 <!-- Blog Post -->
 
                 <!-- Title -->
-                <h1>VeloSpark and Intro to Recommender Systems</h1>
+                <h1>Stacked Models and a Filtering Recommender</h1>
 
                 <!-- Author -->
                 <p class="lead">
-                    by <a href="/contact">Gordon MacMillan</a>
+                    by <a href="/contact">Benjamin Siverly</a>
                 </p>
 
                 <hr>
 
                 <!-- Date/Time -->
-                <p><span class="glyphicon glyphicon-time"></span> Posted on March 5, 2017 at 5:31 PM</p>
+                <p><span class="glyphicon glyphicon-time"></span> Posted on June 14, 2017 at 5:31 PM</p>
 
                 <hr>
 
@@ -84,9 +84,12 @@
                 <hr>
 
                 <!-- Post Content -->
-                <p class="lead">Now nearing the end of my data science curriculum with Galvanize, I have learned models for regression and classification as well as completing the trifecta to learn recommender systems. Being an avid cyclist and having a strong background in exploring the colorado outdoors, I thought what better topic to complete my project on than cycling.</p>
-                <p>Once I looked at the data, it made sense to apply recommendations to see if I could find neat rides in the state of Colorado.</p>
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Eos, doloribus, dolorem iusto blanditiis unde eius illum consequuntur neque dicta incidunt ullam ea hic porro optio ratione repellat perspiciatis. Enim, iure!</p>
+                <p class="lead">.</p>
+                <p>Where does my'Predicted Rating' come from?</p>
+                <p>In my initial exploration of the data I noticed three things that helped direct my decision. The first was how inconsitent the data was. As you could imagine, there were not linear features to be found this set; the breakdown of features to IMDB rating wasn't clearly correlated in any cases. The second was that in order for the results to be interpretable, it would be a good idea to avoid NLP. NLP lends itself nicely to unsupervised learning such as clustering, but isn't the best when you wanted to pull out the features leading to different results - especially when dimensionality reduction such as PCA is done on it. The third thing led me to choose a stacked model. Any given model, whether tuned to perfection or run out-of-the-box, led to an error metric (RMSE) of greater than 0.45. Short of running the model through a Neural Network, a well-tuned stacked model would be able to leverage the most accurate standalone model to get something more accurate.</p>
+                <p>How do Stacked Models work?</p>
+                <p>Stacking (also known as meta ensembling) is an ensemble modeling technique used to combine information from multiple predictive models to generate a new, better model. Often times the stacked model (or 2nd-level model) will outperform each of the individual models due its smoothing nature and the ability to highlight each base model where it performs best and discredit each base model where it performs poorly. </p>
+                <p>For my stacked model I chose to use AdaBoost for the initial model, and Gradient Boosting for the 2nd-level model. Both of these are sequentially built Decision trees that aim to minimize a loss function by weighting incorrect predictions. Gradient Boosting does so by taking a step in the negative direction of the gradient (which is a fancy way of saying it tries to bring the loss function to zero by changing the weight of differing steps)
                 <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Error, nostrum, aliquid, animi, ut quas placeat totam sunt tempora commodi nihil ullam alias modi dicta saepe minima ab quo voluptatem obcaecati?</p>
                 <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Harum, dolor quis. Sunt, ut, explicabo, aliquam tenetur ratione tempore quidem voluptates cupiditate voluptas illo saepe quaerat numquam recusandae? Qui, necessitatibus, est!</p>
 

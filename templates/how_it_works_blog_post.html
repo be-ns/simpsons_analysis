@@ -39,7 +39,7 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" href="/" style="font-family: 'Audiowide', cursive">100,000 Lines of the Simposns</a>
+                    <a class="navbar-brand" href="/" style="font-family: 'Helvetica'">the Simpsonian
                 </div>
                 <!-- Collect the nav links, forms, and other content for toggling -->
                 <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -79,135 +79,21 @@
                 <hr>
 
                 <!-- Preview Image -->
-                <img class="img-responsive" src="images/Screen Shot 2017-03-05 at 5.41.30 PM.png" alt="">
+                <img class="img-responsive" src="https://chattr.com.au/wp-content/uploads/2016/09/the_simpsons_couch_a_l.jpg" alt="">
 
                 <hr>
 
                 <!-- Post Content -->
-                <p class="lead">.</p>
-                <p>Where does my'Predicted Rating' come from?</p>
+                <p class="lead"></p>
+                <p>Where does my 'Predicted Rating' come from?</p>
                 <p>In my initial exploration of the data I noticed three things that helped direct my decision. The first was how inconsitent the data was. As you could imagine, there were not linear features to be found this set; the breakdown of features to IMDB rating wasn't clearly correlated in any cases. The second was that in order for the results to be interpretable, it would be a good idea to avoid NLP. NLP lends itself nicely to unsupervised learning such as clustering, but isn't the best when you wanted to pull out the features leading to different results - especially when dimensionality reduction such as PCA is done on it. The third thing led me to choose a stacked model. Any given model, whether tuned to perfection or run out-of-the-box, led to an error metric (RMSE) of greater than 0.45. Short of running the model through a Neural Network, a well-tuned stacked model would be able to leverage the most accurate standalone model to get something more accurate.</p>
                 <p>How do Stacked Models work?</p>
                 <p>Stacking (also known as meta ensembling) is an ensemble modeling technique used to combine information from multiple predictive models to generate a new, better model. Often times the stacked model (or 2nd-level model) will outperform each of the individual models due its smoothing nature and the ability to highlight each base model where it performs best and discredit each base model where it performs poorly. </p>
-                <p>For my stacked model I chose to use AdaBoost for the initial model, and Gradient Boosting for the 2nd-level model. Both of these are sequentially built Decision trees that aim to minimize a loss function by weighting incorrect predictions. Gradient Boosting does so by taking a step in the negative direction of the gradient (which is a fancy way of saying it tries to bring the loss function to zero by changing the weight of differing steps)
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Error, nostrum, aliquid, animi, ut quas placeat totam sunt tempora commodi nihil ullam alias modi dicta saepe minima ab quo voluptatem obcaecati?</p>
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Harum, dolor quis. Sunt, ut, explicabo, aliquam tenetur ratione tempore quidem voluptates cupiditate voluptas illo saepe quaerat numquam recusandae? Qui, necessitatibus, est!</p>
-
-                <hr>
-
-                <!-- Blog Comments -->
-
-                <!-- Comments Form -->
-                <div class="well">
-                    <h4>Leave a Comment:</h4>
-                    <form role="form">
-                        <div class="form-group">
-                            <textarea class="form-control" rows="3"></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Submit</button>
-                    </form>
-                </div>
-
-                <hr>
-
-                <!-- Posted Comments -->
-
-                <!-- Comment -->
-                <div class="media">
-                    <a class="pull-left" href="#">
-                        <img class="media-object" src="http://placehold.it/64x64" alt="">
-                    </a>
-                    <div class="media-body">
-                        <h4 class="media-heading">Start Bootstrap
-                            <small>August 25, 2014 at 9:30 PM</small>
-                        </h4>
-                        Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin commodo. Cras purus odio, vestibulum in vulputate at, tempus viverra turpis. Fusce condimentum nunc ac nisi vulputate fringilla. Donec lacinia congue felis in faucibus.
-                    </div>
-                </div>
-
-                <!-- Comment -->
-                <div class="media">
-                    <a class="pull-left" href="#">
-                        <img class="media-object" src="http://placehold.it/64x64" alt="">
-                    </a>
-                    <div class="media-body">
-                        <h4 class="media-heading">Start Bootstrap
-                            <small>August 25, 2014 at 9:30 PM</small>
-                        </h4>
-                        Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin commodo. Cras purus odio, vestibulum in vulputate at, tempus viverra turpis. Fusce condimentum nunc ac nisi vulputate fringilla. Donec lacinia congue felis in faucibus.
-                        <!-- Nested Comment -->
-                        <div class="media">
-                            <a class="pull-left" href="#">
-                                <img class="media-object" src="http://placehold.it/64x64" alt="">
-                            </a>
-                            <div class="media-body">
-                                <h4 class="media-heading">Nested Start Bootstrap
-                                    <small>August 25, 2014 at 9:30 PM</small>
-                                </h4>
-                                Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin commodo. Cras purus odio, vestibulum in vulputate at, tempus viverra turpis. Fusce condimentum nunc ac nisi vulputate fringilla. Donec lacinia congue felis in faucibus.
-                            </div>
-                        </div>
-                        <!-- End Nested Comment -->
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Blog Sidebar Widgets Column -->
-            <div class="col-md-4">
-
-                <!-- Blog Search Well -->
-                <div class="well">
-                    <h4>Blog Search</h4>
-                    <div class="input-group">
-                        <input type="text" class="form-control">
-                        <span class="input-group-btn">
-                            <button class="btn btn-default" type="button">
-                                <span class="glyphicon glyphicon-search"></span>
-                        </button>
-                        </span>
-                    </div>
-                    <!-- /.input-group -->
-                </div>
-
-                <!-- Blog Categories Well -->
-                <div class="well">
-                    <h4>Blog Categories</h4>
-                    <div class="row">
-                        <div class="col-lg-6">
-                            <ul class="list-unstyled">
-                                <li><a href="#">Category Name</a>
-                                </li>
-                                <li><a href="#">Category Name</a>
-                                </li>
-                                <li><a href="#">Category Name</a>
-                                </li>
-                                <li><a href="#">Category Name</a>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="col-lg-6">
-                            <ul class="list-unstyled">
-                                <li><a href="#">Category Name</a>
-                                </li>
-                                <li><a href="#">Category Name</a>
-                                </li>
-                                <li><a href="#">Category Name</a>
-                                </li>
-                                <li><a href="#">Category Name</a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                    <!-- /.row -->
-                </div>
-
-                <!-- Side Widget Well -->
-                <div class="well">
-                    <h4>Side Widget Well</h4>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore, perspiciatis adipisci accusamus laudantium odit aliquam repellat tempore quos aspernatur vero.</p>
-                </div>
-
+                <p>For my stacked model I chose to use AdaBoost for the initial model, and Gradient Boosting for the 2nd-level model. Both of these are sequentially built Decision trees that aim to minimize a loss function by weighting incorrect predictions. Gradient Boosting does so by taking a step in the negative direction of the gradient (which is a fancy way of saying it tries to reduce the error  to zero by going back and rebuilding itself while emphasizing certain data points). This model of stacking two models together resulted in a RMSE of .351, meaning my predicted IMDB ratings were off on average by .351 on a 0 to 10 scale.</p>
+                <p></p>
+                <p></p>
+                <p>The recommender I built is different from many people have seen before. I did not use linear distance metrics, since the metrics it would be compared to are engineered from the words, characters and content within the episode scripts. For this reason I wanted to work on what is called the 'cold-start' problem. When a user is new to software, it is hard to recommend anything useful without having the user add inormation. This is why many sites now link with Google or Facebook (you though they did that for simplicity?). Mine would take the users prefrences for characters and locations as well as if they have any affinity for musical episodes or politically charged episodes. It then goes on to crawl each episode's scripts and create features for the set of parameters the user inputted, and outputs the top-rated episode meeting their requirements. </p>
+                <p>This web application was built using Flask and Python, and is hosted on AWS with models, data and a self-built hash table with the results stored in a S3 bucket. </p>
             </div>
 
         </div>
@@ -219,7 +105,7 @@
         <footer>
             <div class="row">
                 <div class="col-lg-12">
-                    <p>Copyright &copy; Your Website 2014</p>
+                    <p>Copyright &copy; BGS OpenSource llc.</p>
                 </div>
             </div>
             <!-- /.row -->

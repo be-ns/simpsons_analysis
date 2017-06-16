@@ -55,19 +55,23 @@
     </div>
     <img src = {{ image }} alt="image" >
     <div class='outer-container'>
-        <div class='results-main'>
-            <h1 class='results-title'> Matching Results: </h1>
+      <div class='button-container'>
+          <div class='main'>
+              <div class='images'>
+                  <a href= {{ video }} ><img class='button' alt="Let's Go!" src='http://cdn.mysitemyway.com/etc-mysitemyway/icons/legacy-previews/icons-256/red-white-pearls-icons-media/000355-red-white-pearl-icon-media-a-media32-forward.png',srcset="http://cdn.mysitemyway.com/etc-mysitemyway/icons/legacy-previews/icons-256/red-white-pearls-icons-media/000355-red-white-pearl-icon-media-a-media32-forward.png">
+                  </a>
+              </div>
+          </div>
+          <div class='results-main'>
+            <h1 class='results-title'> {{ title }} </h1>
             <table>
                 <thead>
-                    <th>{{ title }}</th>
+                  <th> Model Prediction for IMDB rating {{ pred }} </th>
                 </thead>
+                <thread>
+                 <th> Actual IMDB rating {{ actual }} </th>
+                </thread>
                 <tbody>
-                    <tr>
-                        <td>
-                          {{ pred }}
-                          {{ actual }}
-                        </td>
-                    </tr>
                 </tbody>
             </table>
         </div>

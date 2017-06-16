@@ -7,13 +7,13 @@ import simpsons as s
 from sklearn.externals import joblib
 
 def load_data():
-    abm = joblib.load("/Users/benjamin/Desktop/DSI/simpsons_analysis/pickled_models/adaboost_model.pkl")
-    gbm = joblib.load("/Users/benjamin/Desktop/DSI/simpsons_analysis/pickled_models/stacked_model.pkl")
+    abm = joblib.load("pickled_models/adaboost_model.pkl")
+    gbm = joblib.load("/pickled_models/stacked_model.pkl")
     # read in episode data to Pandas DataFrame
-    e_filename = '/Users/benjamin/Desktop/DSI/simpsons_analysis/data/simpsons_episodes.csv'
+    e_filename = 'data/simpsons_episodes.csv'
     titles = pd.read_csv(e_filename)[['id', 'title']]
     # read in raw episode data, return clean episode pandas dataframe
-    episode_df = s.return_clean_script_df("/Users/benjamin/Desktop/DSI/simpsons_analysis/data/simpsons_script_lines.csv", s.clean_episode_data(e_filename))
+    episode_df = s.return_clean_script_df("data/simpsons_script_lines.csv", s.clean_episode_data(e_filename))
     df = s._fill_nans(episode_df)
     return _add_predicts(df, abm, gbm, titles)
 

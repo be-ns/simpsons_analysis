@@ -15,7 +15,7 @@ app = Flask(__name__, static_url_path = "", static_folder = "static")
 df = ld.load_data()
 
 def get_simpsons_char_list(char):
-    simpsons_characters = pd.read_csv('/Users/benjamin/Desktop/DSI/simpsons_analysis/data/simpsons_characters.csv')
+    simpsons_characters = pd.read_csv('data/simpsons_characters.csv')
 
 
 # Home page with options to predict rides or runs
@@ -36,9 +36,9 @@ def contact():
 # This is the form page where users fill out whether they would like bike or run recommendations
 @app.route('/go', methods=['GET', 'POST'])
 def get_activity_predictors():
-    char_list = list(pd.read_csv('/Users/benjamin/Desktop/DSI/simpsons_analysis/data/simpsons_characters.csv').index)
+    char_list = list(pd.read_csv('data/simpsons_characters.csv').index)
     vals = ['Characters', 'Location']
-    fav_location = list(pd.read_csv('/Users/benjamin/Desktop/DSI/simpsons_analysis/data/simpsons_locations.csv').index)
+    fav_location = list(pd.read_csv('data/simpsons_locations.csv').index)
     song = [False,True]
     politics = [False,True]
     return render_template('form.html', char_list=char_list, vals = vals, fav_location = fav_location, song = song, politics = politics)

@@ -8,7 +8,7 @@ from sklearn.externals import joblib
 
 def load_data():
     abm = joblib.load("pickled_models/adaboost_model.pkl")
-    gbm = joblib.load("/pickled_models/stacked_model.pkl")
+    gbm = joblib.load("pickled_models/stacked_model.pkl")
     # read in episode data to Pandas DataFrame
     e_filename = 'data/simpsons_episodes.csv'
     titles = pd.read_csv(e_filename)[['id', 'title']]

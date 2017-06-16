@@ -223,6 +223,7 @@ td {
 
 .content-container .col-lg-8 {
     color: white;
+    margin: 1rem 1rem 1rem;
 }
 
 .well {
@@ -234,4 +235,15 @@ td {
   z-index: 0;
   height: 400px;
   object-fit: cover;
+}
+
+.hopefully-works {
+  position: relative;
+}
+
+.play-button {
+  position: absolute;
+  margin-top: 40rem;
+  width: 500px;
+  margin-left: 15rem;
 }

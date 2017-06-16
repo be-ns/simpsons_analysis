@@ -48,20 +48,20 @@
               <ul class="nav navbar-nav navbar-right">
                   <li><a href="/how_it_works">How It Works</a></li>
                   <li><a href="/contact">Contact</a></li>
+                  <li><a href="/form">Try the Recommender</a></li>
               </ul>
             </div><!-- /.navbar-collapse -->
           </div><!-- /.container-fluid -->
         </nav>
     </div>
-    <img src = {{ image }} alt="image" >
+    <div class = 'hopefully-works'>
+      <img src = {{ image }} alt="image" >
+      <a href= {{ video }} ><img class='play-button' alt="Let's Go!" src='http://icons.iconarchive.com/icons/graphicloads/100-flat/128/play-icon.png',srcset="http://icons.iconarchive.com/icons/graphicloads/100-flat/128/play-icon.png" style = "position: absolute; margin-top: -25rem; margin-left: 65rem; height: 10rem; width: 10rem;">
+      </a>
+        </div>
+      </div>
     <div class='outer-container'>
-      <div class='button-container'>
-          <div class='main'>
-              <div class='images'>
-                  <a href= {{ video }} ><img class='button' alt="Let's Go!" src='http://cdn.mysitemyway.com/etc-mysitemyway/icons/legacy-previews/icons-256/red-white-pearls-icons-media/000355-red-white-pearl-icon-media-a-media32-forward.png',srcset="http://cdn.mysitemyway.com/etc-mysitemyway/icons/legacy-previews/icons-256/red-white-pearls-icons-media/000355-red-white-pearl-icon-media-a-media32-forward.png">
-                  </a>
-              </div>
-          </div>
+
           <div class='results-main'>
             <h1 class='results-title'> {{ title }} </h1>
             <table>
@@ -76,6 +76,5 @@
             </table>
         </div>
     </div>
-</div>
 </body>
 </html>

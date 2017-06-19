@@ -209,13 +209,7 @@ def initialize(char, location, val, song, politics):
         episode_df = episode_df.sort_values(
                                 by=["char_ratio", "loc_ratio"],
                                 ascending=[False, False]
-                                )[:40][episode_df['loc_ratio'] != 0.0]]
-                                .sort_values(by=['song'], ascending=False)
-                                [: 20][episode_df['char_ratio'] != 0.0]
-                                .sort_values(
-                                    by = ["politics"],
-                                    ascending = False
-                                    )[: 5]
+                                )[:40][episode_df['loc_ratio'] != 0.0].sort_values(by=['song'], ascending=False)[: 20][episode_df['char_ratio'] != 0.0].sort_values(by = ["politics"],ascending = False)[: 5]
         return episode_df.sort_values(by = ['imdb_rating'],
             ascending = False).head(1).id
     else:
@@ -226,8 +220,8 @@ def initialize(char, location, val, song, politics):
                                 .sort_values(
                                         by=['song'],
                                         ascending=False
-                                        )[: 20][episode_df['char_ratio'] != 0.0]
-                                        .sort_values(
+                                        )[: 20][episode_df['char_ratio'] != 0.0]. \
+                                        sort_values(
                                                 by=["politics"],
                                                 ascending=False
                                                 )[: 5]

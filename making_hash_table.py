@@ -10,30 +10,32 @@ def make_dict(char_df, loc_df, vals, song, politics):
     OUTPUT: None - pickled hash table (dictionary) with results
     '''
     # initialize the dictionaries
-    new_dict1, new_dict2, lst, count = dict(), dict(), [], count = 1
+    new_dict1, lst = dict(), []
     default_video = 'http://www.simpsonsworld.com/video/288056387698'
-    default_image =
+    default_image = 'http://static-media.fxx.com/img/FX_Networks_-_FXX/925/395/Simpsons_05_08_P2.jpg'
     for character in char_df:
         for locat in loc_df:
             for val in vals:
                 for m in song:
                     for p in politics:
                         lst.append([character, locat, val, m, p])
+        count = 1
         for group in lst:
             print(group)
-            x = fe.return_suggested(group)
-            if x:
-                new_dict1[(character, locat, val, m, p)] = x
-                count += 1
+            if ' '.join(str(x) for x in group) in set(new_dict1.keys()):
+                print('skipped')
+                pass
             else:
-                new_dict1[(character, locat, val, m, p)] = [
-                                        "Boy-Scoutz 'n the Hood",
-                                        8.56, 8.4, default_image, default_video
-                                        ]
-                count += 1
+                x = fe.return_suggested(group)
+                if x:
+                    new_dict1[' '.join(x for x in group)] = x
+                else:
+                    new_dict1[' '.join(x for x in group)] = [
+                        "Boy-Scoutz 'n the Hood",
+                        8.56, 8.4, default_image, default_video
+                        ]
     # pickle the hash table
     joblib.dump(new_dict1, 'hash_table_test.pkl')
-    joblib.dump(new_dict2, 'hash_table_test2.pkl')
 
 if __name__ == '__main__':
     # get all options for the user input in Flask App

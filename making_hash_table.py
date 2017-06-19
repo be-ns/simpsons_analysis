@@ -14,15 +14,16 @@ def make_dict(char_df, loc_df, vals, song, politics):
                 for m in song:
                     for p in politics:
                         lst.append([character, locat, val, m, p])
-        print(len(lst))
         for group in lst:
+            print(group)
             x = fe.return_suggested(group)
             if x:
                 new_dict1[(character, locat, val, m, p)] = x
+                count += 1
             else:
                 new_dict1[(character, locat, val, m, p)] = ["Boy-Scoutz 'n the Hood",8.56,8.4, 'http://static-media.fxx.com/img/FX_Networks_-_FXX/280/1003/Simpsons_05_08.jpg', 'http://www.simpsonsworld.com/video/288056387698']
                 count += 1
-                print('done')
+    # pickle the models
     joblib.dump(new_dict1, 'hash_table_test.pkl')
     joblib.dump(new_dict2, 'hash_table_test2.pkl')
 

@@ -1,7 +1,5 @@
 from flask import Flask, request, render_template, session
 import loading_data as ld
-import filtering as fe
-from scipy.spatial.distance import cdist
 from sklearn.externals import joblib
 import numpy as np
 import pandas as pd
@@ -82,8 +80,9 @@ def suggest_episode():
                                     bool(request.form['politics'])
                                     ]
                                     )
+    # pulls episode from the hash table
     episode_list = search_dict[episode_id]
-    # passes info into the template
+    # passes info into template
     return render_template(
                     'results.html', title=str(episode_list[0]),
                     pred=round(float(episode_list[1]), 2),

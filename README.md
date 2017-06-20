@@ -6,6 +6,24 @@
 # Building a ratio-based Recommender for finding an episode you'd like.
 
 ---
+## TABLE OF CONTENTS
+1. [Overview](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#overview)
+ * [Goal](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#goal)
+ * [Process](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#process)
+ * [Results](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#results)
+ * [Tools Used](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#tools-used)
+2. [Technical Approach](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#technical-approach)
+ * [Data](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#data)
+ * [Cleaning / Munging](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#munging--cleaning)
+ * [Model Selection / Benchmarking](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#model-selection--benchmarking)
+ * [Modeling Process](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#modeling--algorithms)
+ * [Error Metric](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#error-metric-choice)
+ * [Features](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#model---features)
+ * [Model Rationale](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#model---rationale)
+ * 
+3. [Future Steps](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#next-steps)
+
+---
 
 ### OVERVIEW
 #### GOAL
@@ -55,9 +73,10 @@ In a [second dataset](https://github.com/be-ns/simpsons_analysis/blob/master/dat
 Initial data exploration was done in Pandas, Python, and MatPlotLib using a Jupyter Notebook.
 Data was cleaned in Python using a variety of packages, most heavily Pandas and Numpy. 
 Script lines needed to have 37 rows manually cleaned due to double-quotation errors from in the `text` and `raw_text` sections
-`NaN`s were filled with the column-mean. Given more time, I would like to improve this to my preferred method of K-Nearest Neighbor NaN imputation. Alternately, using a `backfill` method could be useful for timeseries data. The spoken lines (`raw_text`) was the only aspect of the script information used. I did not use screen direction or animation notes.
+`NaN`s were imputed with the column-mean. Given more time, I would like to improve this to my preferred method of K-Nearest Neighbor NaN imputation. Alternately, using a `backfill` method could be useful for timeseries data. The spoken lines (`raw_text`) was the only aspect of the script information used. I did not use screen direction or animation notes.
 
 ![distribution of scores](https://github.com/be-ns/simpsons_analysis/blob/master/graphs/distribution_of_scores.png?raw=true)
+
 The Data was split into a `train` and `holdout` set (80% / 20% breakdown). Models were built using the training set with the final model selected based on the best hold-out RMSE. The algorithm was run in a while loop on an EC2 instance overnight, allowing the model to overwrite any saved models when the score improved. The overnight score went from .042 to 0.351; the  model for the latter was saved (i.e. pickled). Persisting the model file allows me to skip the training step in the future.
 
 #### MODEL SELECTION / BENCHMARKING
@@ -68,7 +87,7 @@ Data benchmarking was done with minor hyperparameter optimization for several al
 
 ###### For this graphic, the pickled Stacked Model was utilized, so the RMSE below 0.3 is not accurate to the holdout score on initial model training.
 
-The model selected was chosen due to the non-linear feature-to-target connections. Flexibility was highly valuesd, as was reduction in compute power. Although K-Nearest Neighbors was the quickest model, the test error showed it didn't improve to the extant that the stacked model did.
+The model selected was chosen due to the non-linear feature-to-target connections. Flexibility was highly valued, as was reduction in compute power. Although K-Nearest Neighbors was the quickest model, the test error showed it didn't improve to the extant that the stacked model did.
 
 #### MODELING / ALGORITHMS
 Stacking (also known as meta ensembling) is an ensemble modeling technique used to combine information from multiple predictive models to generate a new, better model. Often times the stacked model (or 2nd-level model) will outperform each of the individual models due its smoothing nature (reducing variance from overfitting) and the ability to highlight each base model where it performs best and discredit each base model where it performs poorly.
@@ -77,7 +96,7 @@ Stacking (also known as meta ensembling) is an ensemble modeling technique used 
 <img src=https://cdn1.tnwcdn.com/wp-content/blogs.dir/1/files/2016/02/Screen-Shot-2016-02-03-at-15.59.14.png width=50%></center>
 
 For my stacked model I chose to use AdaBoost for the initial model, and Gradient Boosting for the 2nd-level model.  
-Both of these are sequentially built Decision trees that aim to minimize a loss function by weighting incorrect predictions and then rebuilding the decision tree. Gradient Boosting does so by taking a step in the negative direction of the gradient (which is a fancy way of saying it tries to reduce the error to zero by going back and rebuilding itself while emphasizing certain data points). 
+Both of these are sequentially built Decision trees that aim to minimize a loss function by weighting incorrect predictions and then rebuilding the decision tree. Gradient Boosting does so by taking a step in the negative direction of the gradient (which is a fancy way of saying it tries to minimize the error to zero by going back and rebuilding itself while emphasizing certain data points). 
 This method of stacking two models together resulted in a RMSE of 0.351, meaning my predicted IMDB ratings were off on average by .351 on a 0 to 10 scale.
 
 #### ERROR METRIC CHOICE
@@ -87,7 +106,7 @@ I chose to evaluate my model using the Square Root of the Mean Squared Error, or
 
 ###### Such that `N` = number of predictions made; Y-hat = Predicted score; Y = true score
 
-##### Model - Features
+#### MODEL - FEATURES
 The final Stacked Model used engineered features to capture the signal for the Simpsons IMDB ratings. The top features in the model were the length of the lines (number of words in the average statement), the longest line in the episode, and the `Simpson to Other` Ratio. This Ratio was found by analyzing the percent of lines in the episode spoken by the core group of characters. A larger `Simpson to Other` Ratio implies that a large percentage of the episode was spoken lines by the Simpson family. Another feature of note was the Political Cycle boolean, which was derived from analyzing if the episode aired during a political cycle or not. The Simpson's is often explicitly political in nature, which I thoungt may or may not influence the public response to the episode. 
 Note the non-linear signal of the data, which lended itself nicely to the 
 ![feature one](https://github.com/be-ns/simpsons_analysis/blob/master/graphs/avg_line_len.png?raw=true)
@@ -96,18 +115,23 @@ Note the non-linear signal of the data, which lended itself nicely to the
 
 #### MODEL - RATIONALE
 ##### Why not NLP?
-1. At this stage, the data isn't consumer facing - it would be a raw script - utilizing engineered features would be easier to interpret than doing TF-IDF with PCA. Engineered features would better serve the purpose here, since I could pull the top feaures from the stacked model.
+1. At this stage, the data isn't consumer facing - it would be a raw script - utilizing engineered features would be easier to interpret than doing TF-IDF with PCA and more flexible than LDA. Engineered features would better serve the purpose here, since I could pull the top feaures from the stacked model.
 ![top features](https://github.com/be-ns/simpsons_analysis/blob/master/graphs/feature_importances.png?raw=true)
+##### Why not Parallelize?
+1. The algorithms I utilized are built sequentially, requiring previous knowledge to be built correctly. Parallelizing the data here would be impossible with this model. 
+2. The models were small enough to fit in memory, allowing lower latency than spinning up clusters in the cloud.
+
 ---
 ### NEXT STEPS
-1. Imputing NaNs with KNN.
-2. Experiment with Polynomial Expansion.
-3. Add political score into model.
-4. Add ability to give feedback for input of script to begin determining the directionality of scores.
-5. Get two episodes from recommender to allow for watching a second episode.
+1. Impute NaNs with KNN instead of column-mean.
+2. Experiment with Polynomial Expansion for feature space to see if this would improve accuracy.
+3. Alter political cycle metric to inlcude counts of political language.
+4. Give actionble insights from model for altering scripts to increase publice rating.
+5. Allow model to return top-N episodes.
 6. Run videos natively on Flask App.
 7. Pull Wikipedia description for every episode to be displayed on page.
 8. Compare stacked model with PyMC2 model.
+
 
 <img src=https://cdn1.vox-cdn.com/uploads/chorus_asset/file/4204155/simp_Cue_Detective_TABF17_T17_Sc1074_hires2.0.jpg width=75%>
 

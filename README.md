@@ -102,8 +102,8 @@ Note the non-linear signal of the data, which lended itself nicely to the
 3. Add political score into model.
 4. Add ability to give feedback for input of script to begin determining the directionality of scores.
 
-<center>
 <img src=https://cdn1.vox-cdn.com/uploads/chorus_asset/file/4204155/simp_Cue_Detective_TABF17_T17_Sc1074_hires2.0.jpg width=50%>
-</center>
+
 ---
+
 Special Thanks to [Todd Schneider](https://data.world/data-society/the-simpsons-by-the-data) for his Simpsons by the Data analysis, which inspired the project

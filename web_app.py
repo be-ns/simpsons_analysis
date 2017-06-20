@@ -71,8 +71,10 @@ def suggest_episode():
     to get the recommended episode, then displays
     that in the results html
     '''
+    # load in the hash_table for speedy computation
+    search_dict = joblib.load('hash_table.pkl')
     # sets all values to correct datatype to avoid any issues
-    episode_list = fe.return_suggested([
+    episode_id = ' '.join(str(x) for x in[
                                     str(request.form['char']),
                                     str(request.form['fav_location']),
                                     str(request.form['val']),
@@ -80,6 +82,7 @@ def suggest_episode():
                                     bool(request.form['politics'])
                                     ]
                                     )
+    episode_list = search_dict[episode_id]
     # passes info into the template
     return render_template(
                     'results.html', title=str(episode_list[0]),

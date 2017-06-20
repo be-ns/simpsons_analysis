@@ -131,12 +131,15 @@ def politicize(episode_df, scripts, politics):
     # read in script csv
     script_df = pd.read_csv(scripts)
     # make words to be looking for
-    politics_lst = 'president politics political election \
-                    congress right-wing immigration environment \
-                    campaign clinton obama cheney'.lower().split(' ')
+    politics_lst = [
+        'president', 'politics', 'political', 'election', 'congress',
+        'right-wing', 'immigration', 'environment', 'campaign', 'clinton',
+        'obama', 'cheney'
+        ]
     # get counts for how many times these words appear
     # in the episode / or don't
     for word in politics_lst:
+        print('next up =', word)
         if politics:
             for word in politics_lst:
                 script_df[word] = script_df['raw_text'].apply(
@@ -158,7 +161,7 @@ def politicize(episode_df, scripts, politics):
         + script_df.obama + script_df.cheney
     # drop the words since they are combined now
     script_df.drop(labels=[
-                    'president', 'political', 'election',
+                    'president', 'election',
                     'congress', 'right-wing', 'immigration',
                     'environment', 'campaign', 'clinton',
                     'obama', 'cheney'
@@ -244,6 +247,7 @@ def return_suggested(pred_list):
     recommended_id = initialize(
                         char, location, val, song, politics
                         ).head(1).values
+    print('rec id = ', recommended_id)
     df = ld.load_data()
     for row in df.as_matrix():
         if row[0] == recommended_id:

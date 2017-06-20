@@ -18,22 +18,23 @@ def make_dict(char_df, loc_df, vals, song, politics):
             for val in vals:
                 for m in song:
                     for p in politics:
-                        lst.append([character, locat, val, m, p])
-        count = 1
-        for group in lst:
-            print(group)
-            if ' '.join(str(x) for x in group) in set(new_dict1.keys()):
-                print('skipped')
-                pass
-            else:
-                x = fe.return_suggested(group)
-                if x:
-                    new_dict1[' '.join(x for x in group)] = x
-                else:
-                    new_dict1[' '.join(x for x in group)] = [
-                        "Boy-Scoutz 'n the Hood",
-                        8.56, 8.4, default_image, default_video
-                        ]
+                        group = [character, locat, val, m, p]
+                        print(group)
+                        if ' '.join(str(x) for x in group) in set(new_dict1.keys()):
+                            print('skipped')
+                            pass
+                        else:
+                            print('here')
+                            y_hat = fe.return_suggested(group)
+                            if y_hat:
+                                print('adding')
+                                new_dict1[' '.join(str(x) for x in group)] = y_hat
+                            else:
+                                print('adding default')
+                                new_dict1[' '.join(str(x) for x in group)] = [
+                                    "Boy-Scoutz 'n the Hood",
+                                    8.56, 8.4, default_image, default_video
+                                    ]
     # pickle the hash table
     joblib.dump(new_dict1, 'hash_table_test.pkl')
 

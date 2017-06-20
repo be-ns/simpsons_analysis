@@ -109,8 +109,8 @@ Note the non-linear signal of the data, which lended itself nicely to the
 7. Pull Wikipedia description for every episode to be displayed on page.
 8. Compare stacked model with PyMC2 model.
 
-<img src=https://cdn1.vox-cdn.com/uploads/chorus_asset/file/4204155/simp_Cue_Detective_TABF17_T17_Sc1074_hires2.0.jpg width=50%>
+<img src=https://cdn1.vox-cdn.com/uploads/chorus_asset/file/4204155/simp_Cue_Detective_TABF17_T17_Sc1074_hires2.0.jpg width=75%>
 
 ---
 
-Special Thanks to [Todd Schneider](https://data.world/data-society/the-simpsons-by-the-data) for his Simpsons by the Data analysis, which inspired the project
+Special Thanks to [Todd Schneider](http://toddwschneider.com/posts/the-simpsons-by-the-data/) for his Simpsons by the Data analysis, which inspired the project

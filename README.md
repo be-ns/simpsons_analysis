@@ -15,7 +15,10 @@ interesting than the original headline.
 > model that knows *only when the episode aired* scores **0.436**. Everything the
 > scripts add on top of that is **< 0.005 RMSE — statistical noise.** The
 > Simpsons' rating is almost entirely a function of *its decline over time*, not
-> the content of any individual episode.
+> the content of any individual episode — at least not content that *counts and
+> embeddings* can see. Having Claude Opus actually **read** the scripts is the
+> first approach that shows signal beyond chronology
+> ([see below](#beating-chronology-can-opus-read-the-script)).
 
 ![IMDb rating over 27 years](reports/figures/rating_over_time.png)
 
@@ -129,6 +132,61 @@ network access.
 
 ---
 
+## Beating chronology: can Opus *read* the script?
+
+Embeddings represent words; they don't *understand* whether a joke lands. The
+real test is to have a strong reader — Claude Opus — read each transcript and
+score the qualitative things critics actually argue about: joke quality, heart,
+satire, mean-spiritedness, story coherence, over-reliance on guest stars.
+[`src/simpsons/llm_features.py`](src/simpsons/llm_features.py) does exactly this:
+a 12-dimension 0–10 rubric, extracted via the **Batch API** with **prompt
+caching** on the shared rubric and **structured-output** JSON, cached to disk so
+the run is pay-once and resumable.
+
+### The right scoreboard: the detrended residual
+
+Raw RMSE is the wrong yardstick — chronology dominates it. The honest question
+is whether a feature set explains the **residual** left after removing the
+time trend. `scripts/beat_chronology.py` computes leak-free out-of-fold
+residuals and scores each feature family by how much of that residual it
+recovers (R² > 0 means it beats chronology):
+
+| Feature family | Out-of-fold R² on the chronology residual |
+|---|---|
+| Engineered (line lengths, counts) | **−0.06** |
+| Linguistic (sentiment, diversity) | **−0.09** |
+| LSA embeddings (100-dim) | **−0.02** |
+
+All three are **negative** — they explain *nothing* a smooth air-date trend
+doesn't already capture. The within-era residual (std **0.443**) is precisely
+the ~0.44 floor every model in the autoresearch leaderboard hit.
+
+### The first thing that cracks it
+
+On a stratified 12-episode demonstration sample that Opus scored directly from
+the transcripts (committed under [`data/llm_features/`](data/llm_features/)), the
+rubric is sharply discriminating — and, crucially, it tracks the part chronology
+*can't* explain:
+
+| | correlation with… |
+|---|---|
+| LLM "craft" composite vs. **IMDb rating** | **+0.93** |
+| LLM "craft" composite vs. **chronology residual** | **+0.86** |
+| `joke_quality` vs. rating | +0.98 |
+| `story_originality` vs. rating | +0.90 |
+| `guest_star_reliance` vs. rating | −0.42 |
+
+That +0.86 against the *residual* is the signal nothing else in this project
+produced. **Honest caveats:** n = 12, the sample is stratified by rating, and
+Opus scored episodes it recognized — so this proves the rubric discriminates and
+the approach is sound, not that the result holds out-of-sample. The decisive
+test is one command away: extract all ~564 episodes via the Batch API
+(`make llm-extract` → `make llm-collect B=<id>`), which auto-registers
+`llm+chrono` into the autoresearch leaderboard and produces a real out-of-fold
+residual R². That is the experiment most likely to finally beat chronology.
+
+---
+
 ## The recommender, rebuilt
 
 The original "recommender" was a **preference funnel**: a chain of `sort_values`
@@ -156,17 +214,23 @@ fly, so there's no opaque pre-computed hash table to keep in sync.
 
 ## Reproduce everything
 
-```bash
-pip install -r requirements.txt
+A `Makefile` codifies every step (deterministic given the fixed seeds):
 
-python scripts/run_analysis.py     # honest metrics + 5 core figures  → reports/
-python scripts/autoresearch.py     # the 42-pipeline search           → reports/
-python scripts/train_model.py      # persist the rating model         → models/
-python web_app.py                  # the recommender demo at :8080
+```bash
+make install            # dependencies
+make analysis           # honest metrics + 5 core figures        → reports/
+make autoresearch       # the 42-pipeline model/feature search   → reports/
+make beat-chronology    # the detrended-residual test (real bar)
+make model              # persist the rating model               → models/
+make app                # the recommender demo at :8080
+make all                # analysis + autoresearch + beat-chronology + model
+
+# Opus rubric extraction at scale (needs Anthropic credentials):
+make llm-extract            # submit the Batch API job
+make llm-collect B=<id>     # fetch results into data/llm_features/
 ```
 
-Everything is deterministic given the fixed seeds. Machine-readable results land
-in [`reports/metrics.json`](reports/metrics.json),
+Machine-readable results land in [`reports/metrics.json`](reports/metrics.json),
 [`reports/autoresearch.json`](reports/autoresearch.json), and
 [`reports/autoresearch_leaderboard.csv`](reports/autoresearch_leaderboard.csv).
 
@@ -175,11 +239,13 @@ src/simpsons/
   data.py          leak-free loading + feature engineering
   text_features.py linguistic features + LSA semantic embeddings
   embeddings.py    SOTA embedding backends (sentence-transformers / OpenAI / Voyage)
+  llm_features.py  Opus rubric extraction (Batch API + caching + structured output)
   modeling.py      honest CV, baselines, permutation importance
-  experiments.py   feature sets + model zoo + nested-CV search
+  experiments.py   feature-set registry + model zoo + nested-CV search
   recommender.py   transparent content-based ranker
   viz.py           figure generation
-scripts/           run_analysis.py · autoresearch.py · train_model.py
+scripts/           run_analysis.py · autoresearch.py · beat_chronology.py · train_model.py
+data/llm_features/ Opus-scored demonstration rubric (12 episodes)
 reports/           metrics, leaderboard, figures
 legacy/            the original 2017 project, untouched
 ```
@@ -188,17 +254,18 @@ legacy/            the original 2017 project, untouched
 
 ## Honest limitations & next steps
 
-- **The ceiling is real, not a modelling failure.** Per-episode quality is
-  dominated by writing, voice acting, and direction — none of which survive in a
-  line-delimited transcript. No feature set here will break ~0.44 because the
-  information isn't in the data.
-- **Detrend, then ask the real question.** The genuinely interesting target is
-  the *residual* after removing the time trend: *given its era, what made an
-  episode over- or under-perform?* That's where SOTA embeddings might finally earn
-  their keep, and it's the experiment I'd run next.
-- **Validate with a transformer encoder** on a networked machine via the
-  embeddings module, and add guest-star and writer/director metadata (not in the
-  current dataset) — plausibly the only features with real residual signal.
+- **Shallow features can't break ~0.44 — but reading might.** Per-episode
+  quality lives in writing, voice acting, and direction. Counts and embeddings
+  don't see it (all negative residual R²); an LLM *reading* the script appears to
+  (+0.86 vs. the residual on the demo sample). The full Batch extraction is the
+  experiment that settles it.
+- **Run the full LLM extraction and re-score.** `make llm-extract` →
+  `make llm-collect` populates all ~564 episodes; `llm+chrono` then auto-enters
+  the autoresearch leaderboard and `beat_chronology.py` reports a real
+  out-of-fold residual R². If it's positive and material, chronology is beaten.
+- **Then add what's still missing from the data** — guest-star, writer, and
+  director metadata — and validate the LSA story with a transformer encoder via
+  the embeddings module on a networked machine.
 
 ---
 

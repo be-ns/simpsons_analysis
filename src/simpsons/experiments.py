@@ -52,7 +52,7 @@ def feature_sets() -> dict[str, pd.DataFrame]:
         out["__target__"] = y.values
         return out
 
-    return {
+    sets = {
         "chrono_only": pack(chrono),
         "engineered": pack(engineered),
         "engineered+chrono": pack(engineered + chrono),
@@ -61,6 +61,22 @@ def feature_sets() -> dict[str, pd.DataFrame]:
         "lsa+chrono": pack(lsa + chrono),
         "all_text+chrono": pack(engineered + ling + lsa + chrono),
     }
+
+    # Register LLM rubric features — but only when they cover every rated episode.
+    # The committed demonstration sample covers a handful, so this stays out of the
+    # leaderboard until you run the full batch extraction (see simpsons.llm_features).
+    from . import llm_features as Lf
+
+    llm = Lf.load_llm_features()
+    covered = df["id"].isin(llm.index)
+    if covered.all() and len(llm.columns):
+        joined = df.set_index("id").join(llm)
+        for col in Lf.FEATURE_COLUMNS:
+            df[col] = joined[col].to_numpy()
+        sets["llm_only"] = pack(Lf.FEATURE_COLUMNS)
+        sets["llm+chrono"] = pack(Lf.FEATURE_COLUMNS + chrono)
+        sets["all+llm"] = pack(engineered + ling + lsa + Lf.FEATURE_COLUMNS + chrono)
+    return sets
 
 
 # --------------------------------------------------------------------------- #

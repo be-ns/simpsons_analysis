@@ -1,0 +1,14 @@
+# Core analysis stack (pinned to majors that the 2026 rebuild was validated on)
+pandas>=2.2
+numpy>=1.26
+scikit-learn>=1.5
+scipy>=1.11
+matplotlib>=3.8
+joblib>=1.3
+flask>=3.0
+
+# Optional — only needed for the SOTA embedding backends in
+# simpsons.embeddings. Install whichever you intend to use:
+#   pip install sentence-transformers   # local MTEB models (bge, gte, NV-Embed)
+#   pip install openai                  # text-embedding-3-large via API
+#   pip install voyageai                # voyage-3 via API

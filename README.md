@@ -1,145 +1,208 @@
+# Can a Simpsons script tell you how good the episode is?
 
-![The Simpson's Analysis](logo_simpsonian.png)
-<img src=http://solarentertainmentcorp.com/solar_uploads/ckeditor/JackTV/The_Simpsons.jpg width=100%>
+**Short answer: no — and proving that rigorously is the interesting part.**
 
-# Predicting IMDB ratings from the scripts of one of America's longest running shows.
-# Building a ratio-based Recommender for finding an episode you'd like.
+This repository started life in 2017 as a portfolio project that claimed to
+*predict an episode's IMDb rating from its script* with an RMSE of 0.351. This
+is a 2026 rebuild. With leak-free methodology and an automated model search, the
+honest answer turns out to be very different — and, I'd argue, far more
+interesting than the original headline.
 
----
-## TABLE OF CONTENTS
-1. [Overview](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#overview)
- * [Goal](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#goal)
- * [Process](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#process)
- * [Results](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#results)
- * [Tools Used](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#tools-used)
-2. [Technical Approach](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#technical-approach)
- * [Data](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#data)
- * [Cleaning / Munging](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#munging--cleaning)
- * [Model Selection / Benchmarking](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#model-selection--benchmarking)
- * [Modeling Process](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#modeling--algorithms)
- * [Error Metric](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#error-metric-choice)
- * [Features](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#model---features)
- * [Model Rationale](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#model---rationale)
-3. [Future Steps](https://github.com/be-ns/simpsons_analysis/blob/master/README.md#next-steps)
+> **Headline finding.** Across **42 model × feature-set combinations** — shallow
+> engineered features, hand-built linguistic features, and TF-IDF/LSA *semantic
+> embeddings* of the full dialogue, run through linear models, tree ensembles
+> and a neural net — the best honest (nested-CV) error is **RMSE ≈ 0.44**. A
+> model that knows *only when the episode aired* scores **0.436**. Everything the
+> scripts add on top of that is **< 0.005 RMSE — statistical noise.** The
+> Simpsons' rating is almost entirely a function of *its decline over time*, not
+> the content of any individual episode.
+
+![IMDb rating over 27 years](reports/figures/rating_over_time.png)
 
 ---
 
-### OVERVIEW
-#### GOAL
-The purpose of this project is twofold.  
-1. I engineered a model using the scripts of an animated show to accuractely predict the public response to the show.
-2. I built a simple episode recommender using a ratio for preferred characters and locations as well as if the user enjoys music and politics in their animated shows.  
+## TL;DR for the busy reviewer
 
-Ultimately, a model like this could save the creators of television shows hundreds of thousands of dollars a year. A single episode of the Simpsons costs between $400,000 and $2mm between animation, voice acting, sound, and final production. If the writers utilized a tool like this IMDB predictor, they would be able to catch potentially low ratings before going into production and rework the episode.  
+| | Original (2017) | This rebuild (2026) |
+|---|---|---|
+| Reported RMSE | 0.351 | **0.439 ± 0.050** (nested CV) |
+| How it was obtained | overnight `while` loop saving the best **holdout** draw | nested cross-validation; the search never sees its own test fold |
+| Target leakage | `imdb_rating` NaNs imputed with the mean, then scored | episodes with no rating are **dropped**, never imputed |
+| Stacking | AdaBoost → GBM fed **in-sample** base predictions | single tuned booster; stacking gave no honest lift |
+| Headline claim | "scripts predict ratings" | scripts add **< 0.005 RMSE** beyond air date |
+| Runs today? | ❌ imports the long-removed `sklearn.externals.joblib` | ✅ scikit-learn ≥ 1.5, one `pip install` |
 
-#### PROCESS
-##### Stacked IMDB Prediction Model
-I engineered features from the 600 scripts of the Simpsons ranging from 1989 to 2016. Analysis was done on the text of the episode scripts to grab key episode data like words in the episode, character and location information, and the ratio of lines spoken by the core character group.
-Using this feature matrix coupled with the IMDB ratings, I built a [stacked model](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=5&cad=rja&uact=8&ved=0ahUKEwj2wOyt28rUAhVLKiYKHfTeBM8QFghAMAQ&url=http%3A%2F%2Fblog.kaggle.com%2F2016%2F12%2F27%2Fa-kagglers-guide-to-model-stacking-in-practice%2F&usg=AFQjCNG_KRzJK5q6ajl3t7tpvJTil6YlQw&sig2=SqEKyASqCvxsmshFIHmR4g) using two Boosted Decision Trees (Adaboost and Gradient Boosting) that were optimized using a [random parameter search](https://medium.com/rants-on-machine-learning/smarter-parameter-sweeps-or-why-grid-search-is-plain-stupid-c17d97a0e881). This model was run overnight on an EC2 instance, recursively pickling the model whenever a better hold-out error was achieved. This, combined with the random-search, was cross-validated to ensure the model was not resting at a local minimum.
-###### Quick Visualization of How [Gradient Boosting](https://www.quora.com/What-is-an-intuitive-explanation-of-Gradient-Boosting) works
-<img src=https://openi.nlm.nih.gov/imgs/512/70/4538588/PMC4538588_CIN2015-149702.002.png width = 100%>  
-
-###### The `Error` is weighted each time and a step is taking in the negative direction of the gradient until the loss function is at the lowest it could be.
-
-##### Recommender / Web App
-The recommender I built is not a _true_ recommmender in the sense of using distance metrics to compare similarity. This was chosen since the data available was only the scripts for the episodes. There were no user ratings, and since most people would not know an episode well enough to ask for similar episodes, I chose to look at it with a 'cold-start' mindset. For this reason a user inputs preferences such as a favorite location or if they like songs in their animated shows. The recommender then finds and sorts every episode by the selected preferences and returns the highest rated episode that meets their criteria. Since this process would take anywhere from 20-40 seconds, I built a hash-table using Python dictionaries and stored the results for every combination of preferences it was possible to have.
-The web-app shows a thumbnail of the suggested episode, along with the predicted and the actual values for the episode (using the stacked model from above), and a button to click and watch the episode.
-[![screenshot of web app](https://github.com/be-ns/simpsons_analysis/blob/master/graphs/Flask_app.png?raw=true)](http://ec2-34-203-221-235.compute-1.amazonaws.com:8080/)
-
-#### RESULTS
-The __Stacked Model__ using engineered features, random-search hyperparameter optimization and recursive attempts to outscore itself, achieved a RMSE of 0.351 on a 1-10 scale (RMSE is in the same units as the target number).  
-
-![image](https://github.com/be-ns/simpsons_analysis/blob/master/graphs/score.png?raw=true)
-
-The __Recommender__ is stored on Amazon Web Services and can be played around with [here](http://ec2-34-203-221-235.compute-1.amazonaws.com:8080/)
-
-#### TOOLS USED:
-* [Python](https://www.python.org)
-* [Pandas](http://pandas.pydata.org/index.html)
-* [Numpy](https://docs.scipy.org/doc/numpy-1.12.0/reference/)
-* [SciKitLearn](http://scikit-learn.org/stable/)
-* [MatPlotLib](https://matplotlib.org/)
-* [SciPy](https://www.scipy.org/)
-* [Flask](http://flask.pocoo.org/)
-* [AWS (S3 and EC2)](https://www.aws.amazon.com])
----
-### TECHNICAL APPROACH
-#### DATA
-[Original Dataset](https://github.com/be-ns/simpsons_analysis/blob/master/data/simpsons_episodes.csv) was in CSV format, delineated so that each spoken line, whether 1 or 140 words long, had it's own line. It was found on [Data World](https://data.world/data-society/the-simpsons-by-the-data) in four relational csv files (grouped either by location_id, character_id, or episode_id. Features included episode ID, season, and number in series (season four episode three and season 12 episode three would both have a number in series of 3).
-In a [second dataset](https://github.com/be-ns/simpsons_analysis/blob/master/data/simpsons_script_lines.csv) there was episode specific information like original air date, imdb rating, and viewership upon initial airing.
-
-#### MUNGING / CLEANING
-Initial data exploration was done in Pandas, Python, and MatPlotLib using a Jupyter Notebook.
-Data was cleaned in Python using a variety of packages, most heavily Pandas and Numpy. 
-Script lines needed to have 37 rows manually cleaned due to double-quotation errors from in the `text` and `raw_text` sections
-`NaN`s were imputed with the column-mean. Given more time, I would like to improve this to my preferred method of K-Nearest Neighbor NaN imputation. Alternately, using a `backfill` method could be useful for timeseries data. The spoken lines (`raw_text`) was the only aspect of the script information used. I did not use screen direction or animation notes.
-
-![distribution of scores](https://github.com/be-ns/simpsons_analysis/blob/master/graphs/distribution_of_scores.png?raw=true)
-
-The Data was split into a `train` and `holdout` set (80% / 20% breakdown). Models were built using the training set with the final model selected having the best hold-out RMSE. The algorithm was run in a while loop on an EC2 instance overnight, allowing the model to overwrite any saved models when the score improved. The overnight score went from .042 to 0.351; the  model for the latter was saved (i.e. pickled). Persisting the model file allows me to skip the training step in the future.
-
-#### MODEL SELECTION / BENCHMARKING
-Data benchmarking was done with minor hyperparameter optimization for several algorithms. All models were trained on the training set (80% of original data) and scores below are for 3-fold cross-validated models for both training error and test error.  
-###### Benchmarking Train/Test error for regression algorithms.
-
-![models](https://github.com/be-ns/simpsons_analysis/blob/master/graphs/error_rates.png?raw=true)
-
-###### For this graphic, the pickled Stacked Model was utilized, so the RMSE shown - below 0.3 - is not accurate to the holdout score on initial model training as this graph has minor data leakage. 
-
-The model selected was chosen due to the non-linear feature-to-target connections. Flexibility was highly valued, as was reduction in compute power. Although K-Nearest Neighbors was the quickest model, the test error showed it didn't improve to the extant that the stacked model did.
-
-#### MODELING / ALGORITHMS
-Stacking (also known as meta ensembling) is an ensemble modeling technique used to combine information from multiple predictive models to generate a new, better model. Often times the stacked model (or 2nd-level model) will outperform each of the individual models due its smoothing nature (reducing variance from overfitting) and the ability to highlight each base model where it performs best and discredit each base model where it performs poorly.
-
-<center>
-<img src=https://cdn1.tnwcdn.com/wp-content/blogs.dir/1/files/2016/02/Screen-Shot-2016-02-03-at-15.59.14.png width=50%></center>
-
-For my stacked model I chose to use an AdaBoost Decision Tree Regressor for the initial model, and a Gradient Boosted Decision Tree Regressor for the 2nd-level model.  
-Both of these are sequentially built decision trees which aim to minimize a loss function by weighting incorrect predictions and then rebuilding the decision tree with emphasis on those cases. Gradient Boosting does so by taking a step in the negative direction of the gradient (which is a fancy way of saying it tries to minimize the error to zero by going back and rebuilding itself while emphasizing certain data points). 
-This method of stacking two models together resulted in a RMSE of 0.351, meaning my predicted IMDB ratings were off on average by .351 on a 0 to 10 scale.
-
-#### ERROR METRIC CHOICE
-I chose to evaluate my model using the Square Root of the Mean Squared Error, or RMSE. RMSE is calculated by finding the average of all the squared errors, then taking the square root. The resulting metric is a positive average error in the original metric of the equation (in this case, it is the amount my 1-10 scale prediction is off by).  
-
-<img src=http://file.scirp.org/Html/htmlimages/5-2601289x/fcdba7fc-a40e-4019-9e95-aca3dc2db149.png width=50%>
-
-###### Such that `N` = number of predictions made; Y-hat = Predicted score; Y = true score
-
-#### MODEL - FEATURES
-The final Stacked Model used engineered features to attempt to capture the signal for the Simpsons IMDB ratings over time. The top features in the model were the length of the lines (number of words in the average statement), the longest line in the episode, and the `Simpson to Other` ratio. This ratio was found by analyzing the percent of lines in the episode spoken by the core group of characters. A larger `Simpson to Other` Ratio implies that a larger percentage of the episode was spoken by the Simpson family. Another feature of note was the `Political Cycle` boolean, which was derived from analyzing the original air date to see if the episode aired during a political cycle or not. The Simpson's is often explicitly political in nature, which I thought may or may not influence the public response to the episode. 
-Note the non-linear signal of the data, which lended itself nicely to the 
-![feature one](https://github.com/be-ns/simpsons_analysis/blob/master/graphs/avg_line_len.png?raw=true)
-![feature two](https://github.com/be-ns/simpsons_analysis/blob/master/graphs/Simpsons_to_other.png?raw=true)
-![feature three](https://github.com/be-ns/simpsons_analysis/blob/master/graphs/longest_line.png?raw=true)
-![top features](https://github.com/be-ns/simpsons_analysis/blob/master/graphs/feature_importances.png?raw=true)
-
-#### MODEL - RATIONALE
-##### Why not NLP?
-1. At this stage, the data isn't consumer facing - it would be a raw script - utilizing engineered features would be easier to interpret than doing TF-IDF with PCA and more flexible than LDA. Engineered features would better serve the purpose here, since I could pull the top feaures from the stacked model.
-
-##### Why not Parallelize?
-1. The algorithms I utilized are built sequentially, requiring previous knowledge to be built correctly. Parallelizing the data here would be impossible with this model. 
-2. The models were small enough to fit in memory, allowing lower latency than spinning up clusters in the cloud.
-
----
-### NEXT STEPS
-1. Impute NaNs with KNN instead of column-mean.
-2. Experiment with Polynomial Expansion for feature space to see if this would improve accuracy.
-3. Alter political cycle metric to inlcude counts of political language.
-4. Give actionble insights from model for altering scripts to increase publice rating.
-5. Allow model to return top-N episodes instead of only the top episode.
-6. Run videos natively on Flask App.
-7. Pull Wikipedia description for every episode to be displayed on page.
-8. Compare stacked model with PyMC2 model.
-9. Forecast IMDB ratings using [Facebook Prophet](https://facebookincubator.github.io/prophet/)
-10. Compare my recommended episodes with the recommended episodes found on [Simpsons World](http://www.simpsonsworld.com/)
-11. Add a 404 error page when the combination of features selected for recommender did not align with an episode.
-12. Build out a Bokeh or Plotly interactive graph with episode information overlaid on hover.
-
-
-
-<img src=https://cdn1.vox-cdn.com/uploads/chorus_asset/file/4204155/simp_Cue_Detective_TABF17_T17_Sc1074_hires2.0.jpg width=75%>
+The original code is preserved unchanged in [`legacy/`](legacy/) so the before/after is auditable.
 
 ---
 
-Special Thanks to [Todd Schneider](http://toddwschneider.com/posts/the-simpsons-by-the-data/) for his Simpsons by the Data analysis, which inspired the project
+## What the data actually says
+
+The dataset is [The Simpsons by the Data](https://data.world/data-society/the-simpsons-by-the-data):
+**600 episodes** (597 with an IMDb rating) and **158,314 script lines**.
+
+Three facts drive everything:
+
+1. **Ratings are dominated by time.** Rating correlates **−0.75** with episode
+   order. The "golden era" (S1–10) averages **8.1**; season 11 onward averages **7.0**.
+2. **The naive baseline is already hard to beat.** Ratings have a standard
+   deviation of **0.73**, so "always predict the mean" gives RMSE ≈ 0.73. Any
+   honest model has only ~0.73 of headroom to work with.
+3. **Script-derived features barely move that baseline.** On their own they get
+   to ~0.68 — a rounding error better than guessing.
+
+![Where the signal lives](reports/figures/model_comparison.png)
+
+Permutation importance makes it unambiguous: shuffle `number_in_series` and the
+model falls apart; shuffle any script feature and nothing happens.
+
+![Permutation importance](reports/figures/permutation_importance.png)
+
+The script features themselves are flat clouds against rating — there is simply
+no relationship to learn:
+
+![Script features vs rating](reports/figures/script_features_vs_rating.png)
+
+---
+
+## Autoresearch: an automated, honest model search
+
+Per Andrej Karpathy's *[A Recipe for Training Neural Networks](http://karpathy.github.io/2019/04/25/recipe/)* —
+establish a dumb baseline, change one thing at a time, and **don't fool
+yourself** — `scripts/autoresearch.py` sweeps every feature representation
+against every model family, tuning each with an inner cross-validated search,
+then **re-scores the winner with nested CV** so hyperparameter selection can't
+leak into the reported number. (That guard is exactly what the original
+overnight loop lacked.)
+
+**7 feature sets × 6 model families = 42 honestly-scored pipelines:**
+
+![Autoresearch leaderboard](reports/figures/autoresearch_leaderboard.png)
+
+Read the heatmap top-to-bottom and the conclusion jumps out:
+
+- **Anything green requires chronology.** The `engineered`-only row (no time) is
+  uniformly orange/red. The moment you add `chrono`, every text variant
+  collapses into the same ~0.44 band.
+- **Semantic embeddings do extract real signal — just redundant signal.** LSA
+  embeddings *alone* reach **0.536**, comfortably beating the 0.73 baseline and
+  the 0.68 of shallow features. So dialogue genuinely carries information about
+  quality — but it's information chronology already encodes, so it adds nothing
+  on top.
+- **The neural net is the worst model on the board** (0.49 → 1.12). With only
+  564 examples and 100-dim inputs, an MLP overfits; this is a small-data regime
+  where Karpathy's "don't be a hero" rule favours regularized linear models and
+  boosted trees.
+- **Winner: `engineered + chrono` + HistGradientBoosting**, inner-CV RMSE
+  **0.435**, **nested-CV RMSE 0.439 ± 0.050**. `chrono_only` scores 0.436. The
+  gap between them — and between the optimistic 0.435 and the honest 0.439 — is
+  the search-optimism the original project mistook for a real result.
+
+![Out-of-fold predictions](reports/figures/predicted_vs_actual.png)
+
+The out-of-fold predictions track the multi-year *trend* beautifully and are
+essentially blind to episode-to-episode variation — visual confirmation that the
+model is a chronology estimator wearing a script-analysis costume.
+
+---
+
+## State-of-the-art embeddings (a pluggable upgrade path)
+
+`src/simpsons/embeddings.py` ships a drop-in interface for June-2026 SOTA text
+embeddings — local `sentence-transformers` (e.g. `BAAI/bge-large-en-v1.5`,
+`nvidia/NV-Embed-v2`), or hosted `text-embedding-3-large` / `voyage-3`. They feed
+the *exact same* autoresearch harness:
+
+```python
+from simpsons.embeddings import embed_episodes
+emb = embed_episodes(backend="sentence-transformers", model="BAAI/bge-large-en-v1.5")
+```
+
+The reproducible analysis above uses **TF-IDF/LSA embeddings** rather than a
+transformer for one honest reason: this environment's network policy blocks the
+Hugging Face and embedding-API hosts, so transformer weights can't be fetched
+here. The result it would test, though, is well-supported by what we *can* run:
+classical semantic embeddings already recover all the signal chronology
+provides, so a heavier encoder is overwhelmingly likely to confirm the same
+ceiling — a great hypothesis to validate the moment you run it somewhere with
+network access.
+
+---
+
+## The recommender, rebuilt
+
+The original "recommender" was a **preference funnel**: a chain of `sort_values`
+slices (`[:40]` → `[:20]` → `[:5]`) whose output depended on the order the
+filters happened to be applied, silently dropping episodes along the way.
+
+[`src/simpsons/recommender.py`](src/simpsons/recommender.py) replaces it with a
+transparent, cold-start, content-based ranker. Every episode gets a `match_score`
+that is an inspectable weighted blend of how well it matches your stated
+preferences (favourite character, location, songs, politics) plus a small nudge
+toward higher-rated episodes — **no hidden cut-offs, every component exposed.**
+
+```text
+Preferences(character="Lisa", wants_song=True, wants_politics=True)
+  →  title                 season  imdb  match_score  char  song  politics
+     My Sister, My Sitter      8    8.1     0.581     0.32  0.02   0.06
+     Lisa's Wedding            6    8.3     0.577     0.30  0.01   0.13
+     Sideshow Bob Roberts      6    8.3     0.576     0.16  0.05   0.93
+```
+
+A minimal Flask demo (`web_app.py`) serves it live; it scores episodes on the
+fly, so there's no opaque pre-computed hash table to keep in sync.
+
+---
+
+## Reproduce everything
+
+```bash
+pip install -r requirements.txt
+
+python scripts/run_analysis.py     # honest metrics + 5 core figures  → reports/
+python scripts/autoresearch.py     # the 42-pipeline search           → reports/
+python scripts/train_model.py      # persist the rating model         → models/
+python web_app.py                  # the recommender demo at :8080
+```
+
+Everything is deterministic given the fixed seeds. Machine-readable results land
+in [`reports/metrics.json`](reports/metrics.json),
+[`reports/autoresearch.json`](reports/autoresearch.json), and
+[`reports/autoresearch_leaderboard.csv`](reports/autoresearch_leaderboard.csv).
+
+```
+src/simpsons/
+  data.py          leak-free loading + feature engineering
+  text_features.py linguistic features + LSA semantic embeddings
+  embeddings.py    SOTA embedding backends (sentence-transformers / OpenAI / Voyage)
+  modeling.py      honest CV, baselines, permutation importance
+  experiments.py   feature sets + model zoo + nested-CV search
+  recommender.py   transparent content-based ranker
+  viz.py           figure generation
+scripts/           run_analysis.py · autoresearch.py · train_model.py
+reports/           metrics, leaderboard, figures
+legacy/            the original 2017 project, untouched
+```
+
+---
+
+## Honest limitations & next steps
+
+- **The ceiling is real, not a modelling failure.** Per-episode quality is
+  dominated by writing, voice acting, and direction — none of which survive in a
+  line-delimited transcript. No feature set here will break ~0.44 because the
+  information isn't in the data.
+- **Detrend, then ask the real question.** The genuinely interesting target is
+  the *residual* after removing the time trend: *given its era, what made an
+  episode over- or under-perform?* That's where SOTA embeddings might finally earn
+  their keep, and it's the experiment I'd run next.
+- **Validate with a transformer encoder** on a networked machine via the
+  embeddings module, and add guest-star and writer/director metadata (not in the
+  current dataset) — plausibly the only features with real residual signal.
+
+---
+
+*Data: [The Simpsons by the Data](https://data.world/data-society/the-simpsons-by-the-data).
+Original concept inspired by Todd Schneider's
+[The Simpsons by the Data](https://toddwschneider.com/posts/the-simpsons-by-the-data/).
+The 2017 implementation is preserved in [`legacy/`](legacy/).*

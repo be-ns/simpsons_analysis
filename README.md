@@ -94,9 +94,9 @@ Read the heatmap top-to-bottom and the conclusion jumps out:
   quality — but it's information chronology already encodes, so it adds nothing
   on top.
 - **The neural net is the worst model on the board** (0.49 → 1.12). With only
-  564 examples and 100-dim inputs, an MLP overfits; this is a small-data regime
+  ~597 examples and 100-dim inputs, an MLP overfits; this is a small-data regime
   where Karpathy's "don't be a hero" rule favours regularized linear models and
-  boosted trees.
+  boosted trees (a dedicated PyTorch search later confirmed this — see below).
 - **Winner: `engineered + chrono` + HistGradientBoosting**, inner-CV RMSE
   **0.435**, **nested-CV RMSE 0.439 ± 0.050**. `chrono_only` scores 0.436. The
   gap between them — and between the optimistic 0.435 and the honest 0.439 — is
@@ -196,6 +196,29 @@ blind, out-of-fold evaluation exists to catch.
 So: **scripts carry real quality signal, and an LLM extracts more of it than any
 other method — but for *The Simpsons*, when an episode aired still predicts its
 rating better than what happens in it.**
+
+---
+
+## Final scoreboard
+
+Everything tried in this rebuild, on one honest 5-fold-CV ruler (RMSE, 1–10 scale,
+lower is better):
+
+| Approach | What it knows | RMSE |
+|---|---|---|
+| Baseline (predict the mean) | nothing | 0.725 |
+| Engineered counts (line lengths, locations…) | script (shallow) | 0.679 |
+| LSA semantic embeddings (100-dim) | script (representation) | 0.536 |
+| Deep net — best of 16 archs (PyTorch MLP) | script + air date | 0.523 |
+| **LLM reading the script (blind rubric)** | **script (understanding)** | **0.503** |
+| Chronology only (air date) | air date | 0.438 |
+| Autoresearch winner — engineered+chrono, nested CV | script + air date | 0.439 |
+| **LLM rubric + chronology** *(project best)* | **script + air date** | **0.430** |
+
+Two through-lines: **understanding the script beats representing it** (0.503 vs
+0.536 vs 0.679), and **deep learning is the wrong tool at this data size** (0.523,
+worse than gradient boosting and even chronology alone). Nothing content-based
+beats simply knowing *when* the episode aired.
 
 ---
 

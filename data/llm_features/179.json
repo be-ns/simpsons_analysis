@@ -1,15 +1,1 @@
-{
-  "joke_density": 8,
-  "joke_quality": 9,
-  "emotional_resonance": 5,
-  "satire_sharpness": 6,
-  "story_coherence": 8,
-  "story_originality": 8,
-  "family_centricity": 8,
-  "guest_star_reliance": 1,
-  "cultural_reference_density": 5,
-  "mean_spiritedness": 4,
-  "absurdity_level": 4,
-  "memorable_moment_strength": 9,
-  "rationale": "Grounded Homer-in-NYC premise with dense, quotable gags (Khlav Kalash, Duff blimp)."
-}
+{"joke_density": 9, "joke_quality": 9, "emotional_resonance": 3, "satire_sharpness": 7, "story_coherence": 7, "story_originality": 9, "family_centricity": 7, "guest_star_reliance": 1, "cultural_reference_density": 7, "mean_spiritedness": 5, "absurdity_level": 6, "memorable_moment_strength": 9, "rationale": "The family's day in NYC is a relentless travelogue of gags with the Khlav Kalash vendor and the brilliant Betty Ford 'Checkin' In' musical number."}

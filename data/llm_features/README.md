@@ -1,5 +1,14 @@
 # LLM-extracted qualitative features
 
-Per-episode rubric scores (0-10) produced by `simpsons.llm_features`.
+One JSON file per episode (`<id>.json`): 12 rubric scores (0–10) plus a rationale,
+matching the schema in `src/simpsons/llm_features.py`.
 
-The 12 files currently here are an **Opus-authored demonstration sample** (`claude-opus-4-8`), scored from the actual episode transcripts as a proof that the rubric discriminates between acclaimed and weak episodes. To extract all ~564 episodes via the Batch API, run `python -m simpsons.llm_features extract` with Anthropic credentials, then `... collect <batch_id>`.
+These 282 files were produced by **Claude subagents scoring each transcript blind**
+— the scorer was given only the spoken dialogue, never the rating, season, or air
+date — across a sample spread evenly over all 28 seasons. Evaluate them with
+`python scripts/eval_llm.py` (see `reports/llm_evaluation.json`).
+
+To regenerate at full coverage with a single consistent scorer, use the hosted
+Batch API path: `python -m simpsons.llm_features extract` then `... collect <batch_id>`
+(requires Anthropic credentials). A few source transcripts are empty in the
+upstream data and are dropped during evaluation.

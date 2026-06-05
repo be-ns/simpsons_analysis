@@ -1,15 +1,1 @@
-{
-  "joke_density": 7,
-  "joke_quality": 6,
-  "emotional_resonance": 2,
-  "satire_sharpness": 7,
-  "story_coherence": 4,
-  "story_originality": 6,
-  "family_centricity": 5,
-  "guest_star_reliance": 3,
-  "cultural_reference_density": 5,
-  "mean_spiritedness": 3,
-  "absurdity_level": 6,
-  "memorable_moment_strength": 5,
-  "rationale": "Meta parody of TV spin-offs; sketch-like and uneven but with sharp industry satire."
-}
+{"joke_density": 7, "joke_quality": 6, "emotional_resonance": 2, "satire_sharpness": 7, "story_coherence": 4, "story_originality": 3, "family_centricity": 4, "guest_star_reliance": 4, "cultural_reference_density": 6, "mean_spiritedness": 4, "absurdity_level": 7, "memorable_moment_strength": 5, "rationale": "An anthology of fake spin-offs hosted by Troy McClure that satirizes TV cliches but is structurally a gimmicky non-story with little family focus or emotional core."}

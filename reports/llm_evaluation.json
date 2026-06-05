@@ -1,0 +1,17 @@
+{
+  "n_episodes": 282,
+  "season_span": [
+    1,
+    26
+  ],
+  "rmse": {
+    "baseline_mean": 0.725,
+    "chronology_only": 0.438,
+    "llm_only": 0.503,
+    "llm_plus_chronology": 0.43
+  },
+  "residual_std": 0.448,
+  "llm_residual_r2": -0.031,
+  "corr_craft_rating": 0.521,
+  "corr_craft_residual": 0.13
+}

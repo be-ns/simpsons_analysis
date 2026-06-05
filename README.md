@@ -15,10 +15,11 @@ interesting than the original headline.
 > model that knows *only when the episode aired* scores **0.436**. Everything the
 > scripts add on top of that is **< 0.005 RMSE — statistical noise.** The
 > Simpsons' rating is almost entirely a function of *its decline over time*, not
-> the content of any individual episode — at least not content that *counts and
-> embeddings* can see. Having Claude Opus actually **read** the scripts is the
-> first approach that shows signal beyond chronology
-> ([see below](#beating-chronology-can-opus-read-the-script)).
+> the content of any individual episode. Having Claude **read and judge** each
+> script is the strongest *content* signal of all (RMSE 0.503 vs. 0.54 for
+> embeddings) — but, evaluated blind, it still does **not** beat knowing the air
+> date (0.438), and only nudges the best combined RMSE to **0.430**
+> ([see below](#beating-chronology-can-claude-read-the-script)).
 
 ![IMDb rating over 27 years](reports/figures/rating_over_time.png)
 
@@ -28,11 +29,11 @@ interesting than the original headline.
 
 | | Original (2017) | This rebuild (2026) |
 |---|---|---|
-| Reported RMSE | 0.351 | **0.439 ± 0.050** (nested CV) |
+| Reported RMSE | 0.351 | **0.439 ± 0.050** (nested CV); **0.430** with LLM script-reading |
 | How it was obtained | overnight `while` loop saving the best **holdout** draw | nested cross-validation; the search never sees its own test fold |
 | Target leakage | `imdb_rating` NaNs imputed with the mean, then scored | episodes with no rating are **dropped**, never imputed |
 | Stacking | AdaBoost → GBM fed **in-sample** base predictions | single tuned booster; stacking gave no honest lift |
-| Headline claim | "scripts predict ratings" | scripts add **< 0.005 RMSE** beyond air date |
+| Headline claim | "scripts predict ratings" | counts/embeddings add **<0.005**; an LLM *reading* the script is the best content signal (0.503) but still loses to air date (0.438) |
 | Runs today? | ❌ imports the long-removed `sklearn.externals.joblib` | ✅ scikit-learn ≥ 1.5, one `pip install` |
 
 The original code is preserved unchanged in [`legacy/`](legacy/) so the before/after is auditable.
@@ -132,58 +133,51 @@ network access.
 
 ---
 
-## Beating chronology: can Opus *read* the script?
+## Beating chronology: can Claude *read* the script?
 
 Embeddings represent words; they don't *understand* whether a joke lands. The
-real test is to have a strong reader — Claude Opus — read each transcript and
-score the qualitative things critics actually argue about: joke quality, heart,
-satire, mean-spiritedness, story coherence, over-reliance on guest stars.
-[`src/simpsons/llm_features.py`](src/simpsons/llm_features.py) does exactly this:
-a 12-dimension 0–10 rubric, extracted via the **Batch API** with **prompt
-caching** on the shared rubric and **structured-output** JSON, cached to disk so
-the run is pay-once and resumable.
+real test is to have a strong reader judge each transcript on the things critics
+argue about: joke quality, heart, satire, mean-spiritedness, story coherence,
+over-reliance on guest stars. `src/simpsons/llm_features.py` defines a
+12-dimension 0–10 rubric (Batch API + prompt caching + structured output for the
+hosted path). Since this sandbox blocks the Anthropic API, the extraction was run
+**natively with Claude subagents**: 282 episodes spread evenly across all 28
+seasons, each scored **blind** — the scorer never saw the rating, season, or air
+date (results in [`data/llm_features/`](data/llm_features/)).
 
-### The right scoreboard: the detrended residual
+### The honest result (`scripts/eval_llm.py`, 5-fold CV on the same 282 episodes)
 
-Raw RMSE is the wrong yardstick — chronology dominates it. The honest question
-is whether a feature set explains the **residual** left after removing the
-time trend. `scripts/beat_chronology.py` computes leak-free out-of-fold
-residuals and scores each feature family by how much of that residual it
-recovers (R² > 0 means it beats chronology):
-
-| Feature family | Out-of-fold R² on the chronology residual |
+| Model | RMSE |
 |---|---|
-| Engineered (line lengths, counts) | **−0.06** |
-| Linguistic (sentiment, diversity) | **−0.09** |
-| LSA embeddings (100-dim) | **−0.02** |
+| Baseline (predict mean) | 0.725 |
+| Chronology only | 0.438 |
+| **LLM reading only** | **0.503** |
+| **LLM + chronology** | **0.430** |
 
-All three are **negative** — they explain *nothing* a smooth air-date trend
-doesn't already capture. The within-era residual (std **0.443**) is precisely
-the ~0.44 floor every model in the autoresearch leaderboard hit.
+Two real findings, one honest disappointment:
 
-### The first thing that cracks it
+- **Reading is the best *content* signal, by a wide margin** — 0.503, versus
+  0.536 for LSA embeddings and 0.679 for engineered counts. *Understanding* the
+  script beats *representing* it.
+- **But it does not beat chronology.** Knowing the air date (0.438) still wins.
+  Adding the rubric on top gives the project's best RMSE, **0.430**, but the
+  out-of-fold R² on the chronology residual is **−0.03** — that ~2% gain is
+  within noise. The within-era residual (std 0.448) is essentially uncracked.
 
-On a stratified 12-episode demonstration sample that Opus scored directly from
-the transcripts (committed under [`data/llm_features/`](data/llm_features/)), the
-rubric is sharply discriminating — and, crucially, it tracks the part chronology
-*can't* explain:
+### The cautionary tale: why blind evaluation matters
 
-| | correlation with… |
-|---|---|
-| LLM "craft" composite vs. **IMDb rating** | **+0.93** |
-| LLM "craft" composite vs. **chronology residual** | **+0.86** |
-| `joke_quality` vs. rating | +0.98 |
-| `story_originality` vs. rating | +0.90 |
-| `guest_star_reliance` vs. rating | −0.42 |
+An earlier 12-episode demo, scored by a model that *recognized the episodes*,
+showed the craft composite correlating **+0.86** with the chronology residual —
+seemingly a breakthrough. Re-run **blind** across 282 episodes, that correlation
+collapses to **+0.13**. The +0.86 was leakage from the scorer's own knowledge of
+which episodes are beloved, not signal recovered from the text. That collapse is
+the most important result in this section: it is exactly the kind of optimism —
+the same family as the original project's holdout-tuned 0.351 — that rigorous,
+blind, out-of-fold evaluation exists to catch.
 
-That +0.86 against the *residual* is the signal nothing else in this project
-produced. **Honest caveats:** n = 12, the sample is stratified by rating, and
-Opus scored episodes it recognized — so this proves the rubric discriminates and
-the approach is sound, not that the result holds out-of-sample. The decisive
-test is one command away: extract all ~564 episodes via the Batch API
-(`make llm-extract` → `make llm-collect B=<id>`), which auto-registers
-`llm+chrono` into the autoresearch leaderboard and produces a real out-of-fold
-residual R². That is the experiment most likely to finally beat chronology.
+So: **scripts carry real quality signal, and an LLM extracts more of it than any
+other method — but for *The Simpsons*, when an episode aired still predicts its
+rating better than what happens in it.**
 
 ---
 
@@ -221,6 +215,7 @@ make install            # dependencies
 make analysis           # honest metrics + 5 core figures        → reports/
 make autoresearch       # the 42-pipeline model/feature search   → reports/
 make beat-chronology    # the detrended-residual test (real bar)
+make eval-llm           # blind LLM rubric vs chronology         → reports/llm_evaluation.json
 make model              # persist the rating model               → models/
 make app                # the recommender demo at :8080
 make all                # analysis + autoresearch + beat-chronology + model
@@ -244,8 +239,8 @@ src/simpsons/
   experiments.py   feature-set registry + model zoo + nested-CV search
   recommender.py   transparent content-based ranker
   viz.py           figure generation
-scripts/           run_analysis.py · autoresearch.py · beat_chronology.py · train_model.py
-data/llm_features/ Opus-scored demonstration rubric (12 episodes)
+scripts/           run_analysis.py · autoresearch.py · beat_chronology.py · eval_llm.py · train_model.py
+data/llm_features/ blind Claude-scored rubric (282 episodes, all eras)
 reports/           metrics, leaderboard, figures
 legacy/            the original 2017 project, untouched
 ```
@@ -254,18 +249,20 @@ legacy/            the original 2017 project, untouched
 
 ## Honest limitations & next steps
 
-- **Shallow features can't break ~0.44 — but reading might.** Per-episode
-  quality lives in writing, voice acting, and direction. Counts and embeddings
-  don't see it (all negative residual R²); an LLM *reading* the script appears to
-  (+0.86 vs. the residual on the demo sample). The full Batch extraction is the
-  experiment that settles it.
-- **Run the full LLM extraction and re-score.** `make llm-extract` →
-  `make llm-collect` populates all ~564 episodes; `llm+chrono` then auto-enters
-  the autoresearch leaderboard and `beat_chronology.py` reports a real
-  out-of-fold residual R². If it's positive and material, chronology is beaten.
-- **Then add what's still missing from the data** — guest-star, writer, and
-  director metadata — and validate the LSA story with a transformer encoder via
-  the embeddings module on a networked machine.
+- **Air date beats the script.** Even an LLM reading every line (best content
+  RMSE 0.503) loses to chronology (0.438); the within-era residual is essentially
+  uncracked. Per-episode quality lives in writing, voice acting, and direction —
+  things a transcript only partly captures.
+- **Tighten the LLM extraction before concluding it can't help.** The 282 blind
+  scores came from 10 *different* subagents, so cross-scorer calibration drift
+  adds noise that could mask a small real signal. A single consistent pass over
+  all ~564 episodes (the hosted `make llm-extract` Batch path, one model,
+  prompt-cached rubric) is the cleaner test — and would let `llm+chrono` enter
+  the autoresearch leaderboard at full coverage.
+- **Add what the transcript can't carry** — guest-star, writer, and director
+  metadata (absent from this dataset) are the most likely sources of real
+  residual signal — and validate the embedding story with a transformer encoder
+  via `embeddings.py` on a networked machine.
 
 ---
 

@@ -1,0 +1,32 @@
+{
+  "n_episodes": 597,
+  "target_std": 0.732439390218895,
+  "rating_vs_chronology_corr": -0.7471417243507098,
+  "golden_era_mean": 8.101769911504423,
+  "later_era_mean": 6.950134770889488,
+  "cv_rmse": {
+    "Baseline (predict mean)": 0.731,
+    "Script features only": 0.692,
+    "Time features only": 0.441,
+    "Script + Time (full)": 0.438
+  },
+  "cv_rmse_std": {
+    "Baseline (predict mean)": 0.047,
+    "Script features only": 0.045,
+    "Time features only": 0.042,
+    "Script + Time (full)": 0.045
+  },
+  "out_of_fold_rmse": 0.44,
+  "permutation_importance": {
+    "number_in_series": 0.4635,
+    "family_line_ratio": 0.0016,
+    "avg_line_len": 0.0013,
+    "n_characters": 0.001,
+    "title_len": 0.0008,
+    "max_line_len": 0.0006,
+    "n_speaking_lines": 0.0006,
+    "election_year": -0.0001,
+    "n_locations": -0.0002,
+    "season": -0.0017
+  }
+}

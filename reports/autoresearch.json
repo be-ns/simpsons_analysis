@@ -1,0 +1,223 @@
+{
+  "dumb_baseline_rmse": 0.731,
+  "winner": {
+    "feature_set": "engineered+chrono",
+    "model": "hist_gbm"
+  },
+  "winner_inner_cv_rmse": 0.435,
+  "winner_nested_cv_rmse": 0.439,
+  "winner_nested_cv_std": 0.05,
+  "leaderboard": [
+    {
+      "feature_set": "engineered+chrono",
+      "model": "hist_gbm",
+      "cv_rmse": 0.4348
+    },
+    {
+      "feature_set": "chrono_only",
+      "model": "random_forest",
+      "cv_rmse": 0.4364
+    },
+    {
+      "feature_set": "chrono_only",
+      "model": "hist_gbm",
+      "cv_rmse": 0.4384
+    },
+    {
+      "feature_set": "chrono_only",
+      "model": "knn",
+      "cv_rmse": 0.4388
+    },
+    {
+      "feature_set": "lsa+chrono",
+      "model": "random_forest",
+      "cv_rmse": 0.4409
+    },
+    {
+      "feature_set": "lsa+chrono",
+      "model": "hist_gbm",
+      "cv_rmse": 0.441
+    },
+    {
+      "feature_set": "engineered+chrono",
+      "model": "random_forest",
+      "cv_rmse": 0.4412
+    },
+    {
+      "feature_set": "all_text+chrono",
+      "model": "hist_gbm",
+      "cv_rmse": 0.4421
+    },
+    {
+      "feature_set": "all_text+chrono",
+      "model": "random_forest",
+      "cv_rmse": 0.4422
+    },
+    {
+      "feature_set": "linguistic+chrono",
+      "model": "random_forest",
+      "cv_rmse": 0.4428
+    },
+    {
+      "feature_set": "linguistic+chrono",
+      "model": "hist_gbm",
+      "cv_rmse": 0.4455
+    },
+    {
+      "feature_set": "engineered+chrono",
+      "model": "knn",
+      "cv_rmse": 0.4717
+    },
+    {
+      "feature_set": "all_text+chrono",
+      "model": "elasticnet",
+      "cv_rmse": 0.4735
+    },
+    {
+      "feature_set": "linguistic+chrono",
+      "model": "knn",
+      "cv_rmse": 0.475
+    },
+    {
+      "feature_set": "lsa+chrono",
+      "model": "elasticnet",
+      "cv_rmse": 0.4756
+    },
+    {
+      "feature_set": "linguistic+chrono",
+      "model": "ridge",
+      "cv_rmse": 0.4775
+    },
+    {
+      "feature_set": "linguistic+chrono",
+      "model": "elasticnet",
+      "cv_rmse": 0.4836
+    },
+    {
+      "feature_set": "chrono_only",
+      "model": "ridge",
+      "cv_rmse": 0.4842
+    },
+    {
+      "feature_set": "chrono_only",
+      "model": "elasticnet",
+      "cv_rmse": 0.4863
+    },
+    {
+      "feature_set": "engineered+chrono",
+      "model": "ridge",
+      "cv_rmse": 0.4881
+    },
+    {
+      "feature_set": "engineered+chrono",
+      "model": "elasticnet",
+      "cv_rmse": 0.489
+    },
+    {
+      "feature_set": "all_text+chrono",
+      "model": "ridge",
+      "cv_rmse": 0.4892
+    },
+    {
+      "feature_set": "chrono_only",
+      "model": "mlp",
+      "cv_rmse": 0.4898
+    },
+    {
+      "feature_set": "lsa+chrono",
+      "model": "ridge",
+      "cv_rmse": 0.4917
+    },
+    {
+      "feature_set": "lsa_only",
+      "model": "hist_gbm",
+      "cv_rmse": 0.5361
+    },
+    {
+      "feature_set": "lsa_only",
+      "model": "random_forest",
+      "cv_rmse": 0.5378
+    },
+    {
+      "feature_set": "lsa_only",
+      "model": "elasticnet",
+      "cv_rmse": 0.5426
+    },
+    {
+      "feature_set": "lsa_only",
+      "model": "ridge",
+      "cv_rmse": 0.5723
+    },
+    {
+      "feature_set": "engineered+chrono",
+      "model": "mlp",
+      "cv_rmse": 0.652
+    },
+    {
+      "feature_set": "engineered",
+      "model": "hist_gbm",
+      "cv_rmse": 0.6788
+    },
+    {
+      "feature_set": "engineered",
+      "model": "random_forest",
+      "cv_rmse": 0.6876
+    },
+    {
+      "feature_set": "engineered",
+      "model": "elasticnet",
+      "cv_rmse": 0.7013
+    },
+    {
+      "feature_set": "engineered",
+      "model": "ridge",
+      "cv_rmse": 0.7014
+    },
+    {
+      "feature_set": "engineered",
+      "model": "knn",
+      "cv_rmse": 0.7032
+    },
+    {
+      "feature_set": "linguistic+chrono",
+      "model": "mlp",
+      "cv_rmse": 0.7592
+    },
+    {
+      "feature_set": "lsa+chrono",
+      "model": "knn",
+      "cv_rmse": 0.8171
+    },
+    {
+      "feature_set": "lsa_only",
+      "model": "knn",
+      "cv_rmse": 0.8297
+    },
+    {
+      "feature_set": "all_text+chrono",
+      "model": "knn",
+      "cv_rmse": 0.8653
+    },
+    {
+      "feature_set": "engineered",
+      "model": "mlp",
+      "cv_rmse": 0.9201
+    },
+    {
+      "feature_set": "lsa+chrono",
+      "model": "mlp",
+      "cv_rmse": 1.0716
+    },
+    {
+      "feature_set": "all_text+chrono",
+      "model": "mlp",
+      "cv_rmse": 1.0817
+    },
+    {
+      "feature_set": "lsa_only",
+      "model": "mlp",
+      "cv_rmse": 1.1175
+    }
+  ],
+  "runtime_sec": 334.6
+}

@@ -1,6 +1,6 @@
 # Reproducible pipeline for the Simpsons IMDb analysis.
 # Every target is deterministic given the fixed seeds in src/simpsons.
-.PHONY: help install analysis autoresearch beat-chronology eval-llm llm-extract llm-collect model app all clean
+.PHONY: help install analysis autoresearch beat-chronology autoresearch-dl eval-llm llm-extract llm-collect model app all clean
 
 PY := PYTHONPATH=src python3
 
@@ -10,6 +10,7 @@ help:
 	@echo "make autoresearch    42-pipeline model/feature search    -> reports/"
 	@echo "make beat-chronology detrended-residual test (the real bar)"
 	@echo "make eval-llm        evaluate blind LLM rubric features vs chronology"
+	@echo "make autoresearch-dl Karpathy-style deep-learning (PyTorch) search"
 	@echo "make llm-extract     submit Opus rubric extraction (Batch API; needs creds)"
 	@echo "make llm-collect B=<batch_id>   fetch a finished extraction batch"
 	@echo "make model           train + persist the rating model    -> models/"
@@ -30,6 +31,9 @@ beat-chronology:
 
 eval-llm:
 	$(PY) scripts/eval_llm.py
+
+autoresearch-dl:
+	$(PY) scripts/autoresearch_dl.py
 
 llm-extract:
 	$(PY) -m simpsons.llm_features extract $(LIMIT)

@@ -12,3 +12,6 @@ flask>=3.0
 #   pip install sentence-transformers   # local MTEB models (bge, gte, NV-Embed)
 #   pip install openai                  # text-embedding-3-large via API
 #   pip install voyageai                # voyage-3 via API
+
+# Optional — only for scripts/autoresearch_dl.py (Karpathy-style deep-learning search):
+#   pip install torch

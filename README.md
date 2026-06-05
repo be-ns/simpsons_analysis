@@ -108,6 +108,24 @@ The out-of-fold predictions track the multi-year *trend* beautifully and are
 essentially blind to episode-to-episode variation — visual confirmation that the
 model is a chronology estimator wearing a script-analysis costume.
 
+### Does a deep net do better? No. (`scripts/autoresearch_dl.py`)
+
+A PyTorch MLP, searched Karpathy-style — overfit a tiny batch first to prove the
+training loop learns (train RMSE → ~0.12 ✓), then standardize, regularize
+(dropout, weight decay, early stopping), and random-search 16 architectures under
+the same 5-fold CV:
+
+| Feature set | Best deep net | Gradient boosting |
+|---|---|---|
+| all_text + chrono (597 ep) | 0.523 | **0.430** |
+| llm + chrono (282 ep) | 0.506 | **0.430** |
+
+The net doesn't even beat *chronology-only* gradient boosting (0.438), and it's
+unstable (configs swing 0.51 → 1.32). With ~300–600 rows of tabular features this
+is the expected result and Karpathy's own "don't be a hero" rule: the sanity
+check confirms the model *can* learn — it just overfits. Boosted trees remain the
+right tool here.
+
 ---
 
 ## State-of-the-art embeddings (a pluggable upgrade path)
@@ -239,7 +257,7 @@ src/simpsons/
   experiments.py   feature-set registry + model zoo + nested-CV search
   recommender.py   transparent content-based ranker
   viz.py           figure generation
-scripts/           run_analysis.py · autoresearch.py · beat_chronology.py · eval_llm.py · train_model.py
+scripts/           run_analysis.py · autoresearch.py · autoresearch_dl.py · beat_chronology.py · eval_llm.py · train_model.py
 data/llm_features/ blind Claude-scored rubric (282 episodes, all eras)
 reports/           metrics, leaderboard, figures
 legacy/            the original 2017 project, untouched
